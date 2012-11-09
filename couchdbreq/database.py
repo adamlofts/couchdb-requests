@@ -67,7 +67,7 @@ class Database(object):
                 v['data'] = Database.re_sp.sub('', base64.b64encode(v['data']))
         return attachments
 
-    def __init__(self, server, dbname, create=False, get_or_create=False):
+    def __init__(self, server, name, create=False, get_or_create=False):
         """
         Constructor for Database
 
@@ -76,15 +76,16 @@ class Database(object):
         @param create: boolean, False by default, if True try to create the database.
         @param ger_or_create: boolean, False by default, if True try to create the database.
         """
-        self.dbname = dbname
-        self.server = server
         
-        #self.server_uri, self.dbname = uri.rsplit("/", 1)
-        Database._validate_dbname(self.dbname)
+        Database._validate_dbname(name)
+
+        self.name = name
         
-        self.res = server.res(self.dbname, ":") # / is not safe for the dbname
+        self._server = server
+        self._res = server.res(name, ":") # / is not safe for the dbname
+
         try:
-            self.res.head()
+            self._res.head()
             
             if create:
                 raise DatabaseExistsException()
@@ -92,10 +93,10 @@ class Database(object):
             if not create and not get_or_create:
                 raise
 
-            self.res.put()
+            self._res.put()
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, self.dbname)
+        return "<%s %s>" % (self.__class__.__name__, self.name)
 
     def info(self):
         """
@@ -103,7 +104,7 @@ class Database(object):
 
         @return: dict
         """
-        return self.res.get().json_body
+        return self._res.get().json_body
 
     def compact(self, dname=None):
         """ compact database
@@ -113,12 +114,12 @@ class Database(object):
         path = "/_compact"
         if dname is not None:
             path = "%s/%s" % (path, Database._escape_docid(dname))
-        res = self.res.post(path, headers={"Content-Type":
+        res = self._res.post(path, headers={"Content-Type":
             "application/json"})
         return res.json_body
 
     def view_cleanup(self):
-        res = self.res.post('_view_cleanup', headers={"Content-Type":
+        res = self._res.post('_view_cleanup', headers={"Content-Type":
             "application/json"})
         return res.json_body
 
@@ -135,13 +136,13 @@ class Database(object):
             ddocs.append(ddoc['doc'])
 
         # delete db
-        self.server.delete_db(self.dbname)
+        self._server.delete_db(self.name)
 
         # we let a chance to the system to sync
         time.sleep(0.2)
 
         # recreate db + ddocs
-        self.server.create_db(self.dbname)
+        self._server.create_db(self.name)
         self.bulk_save(ddocs)
 
     def __contains__(self, docid):
@@ -152,7 +153,7 @@ class Database(object):
         """
 
         try:
-            self.res.head(Database._escape_docid(docid))
+            self._res.head(Database._escape_docid(docid))
         except ResourceNotFound:
             return False
         return True
@@ -173,7 +174,7 @@ class Database(object):
             params['rev'] = rev
 
         docid = Database._escape_docid(docid)
-        doc = self.res.get(docid, params=params).json_body
+        doc = self._res.get(docid, params=params).json_body
         if schema is not None:
             return schema.wrap_doc(doc)
         return doc
@@ -183,7 +184,7 @@ class Database(object):
         @param docid: str, undecoded document id.
         @return rev: str, the last revision of document.
         """
-        response = self.res.head(Database._escape_docid(docid))
+        response = self._res.head(Database._escape_docid(docid))
         return response.headers['etag'].strip('"')
 
     def save_doc(self, doc, encode_attachments=True, force_update=False,
@@ -215,22 +216,22 @@ class Database(object):
             docid = doc1['_id']
             docid1 = Database._escape_docid(doc1['_id'])
             try:
-                res = self.res.put(docid1, payload=doc1,
+                res = self._res.put(docid1, payload=doc1,
                         params=params).json_body
             except ResourceConflict:
                 if force_update:
                     doc1['_rev'] = self.get_rev(docid)
-                    res =self.res.put(docid1, payload=doc1,
+                    res =self._res.put(docid1, payload=doc1,
                             params=params).json_body
                 else:
                     raise
         else:
             try:
-                doc['_id'] = self.server.generate_uuid()
-                res =  self.res.put(doc['_id'], payload=doc1,
+                doc['_id'] = self._server.generate_uuid()
+                res =  self._res.put(doc['_id'], payload=doc1,
                                     params=params).json_body
             except:
-                res = self.res.post(payload=doc1, params=params).json_body
+                res = self._res.post(payload=doc1, params=params).json_body
 
         if 'batch' in params and 'id' in res:
             doc1.update({ '_id': res['id']})
@@ -275,7 +276,7 @@ class Database(object):
                     noids = list(g)
 
             for doc in noids:
-                nextid = self.server.generate_uuid()
+                nextid = self._server.generate_uuid()
                 doc['_id'] = nextid
 
         payload = { "docs": docs1 }
@@ -283,7 +284,7 @@ class Database(object):
             payload["all_or_nothing"] = True
 
         # update docs
-        results = self.res.post('_bulk_docs',
+        results = self._res.post('_bulk_docs',
                 payload=payload, params=params).json_body
 
         errors = []
@@ -355,7 +356,7 @@ class Database(object):
             raise KeyError('_id and _rev are required to delete a doc')
 
         docid = Database._escape_docid(doc['_id'])
-        result = self.res.delete(docid, params={ 'rev': doc['_rev'] }).json_body
+        result = self._res.delete(docid, params={ 'rev': doc['_rev'] }).json_body
         """
         if schema:
             doc._doc.update({
@@ -388,7 +389,7 @@ class Database(object):
             docid = doc1['_id']
 
         if dest is None:
-            destination = self.server.generate_uuid()
+            destination = self._server.generate_uuid()
         elif isinstance(dest, basestring):
             if dest in self:
                 dest = self.get(dest)
@@ -403,7 +404,7 @@ class Database(object):
 
         if destination:
             headers.update({"Destination": str(destination)})
-            result = self.res.copy('%s' % docid, headers=headers).json_body
+            result = self._res.copy('%s' % docid, headers=headers).json_body
             return result
 
         return { 'ok': False }
@@ -542,7 +543,7 @@ class Database(object):
         doc1, _ = _maybe_serialize(doc)
 
         docid = Database._escape_docid(doc1['_id'])
-        res = self.res(docid).put(name, payload=payload,
+        res = self._res(docid).put(name, payload=payload,
                 headers=headers, params={ 'rev': doc1['_rev'] }).json_body
 
         if res['ok']:
@@ -562,7 +563,7 @@ class Database(object):
 
         docid = Database._escape_docid(doc1['_id'])
         name = url_quote(name, safe="")
-        res = self.res(docid).delete(name, params={ 'rev': doc1['_rev'] }).json_body
+        res = self._res(docid).delete(name, params={ 'rev': doc1['_rev'] }).json_body
         # FIXME: This is an extra round-trip
         if res['ok']:
             new_doc = self.get_doc(doc1['_id'], rev=res['rev'])
@@ -589,7 +590,7 @@ class Database(object):
         docid = Database._escape_docid(docid)
         name = url_quote(name, safe="")
 
-        resp = self.res(docid).get(name, stream=stream)
+        resp = self._res(docid).get(name, stream=stream)
         if stream:
             return resp.body_stream(chunk_size=stream_chunk_size)
         
@@ -604,7 +605,7 @@ class Database(object):
 
     def ensure_full_commit(self):
         """ commit all docs in memory """
-        return self.res.post('_ensure_full_commit', headers={
+        return self._res.post('_ensure_full_commit', headers={
             "Content-Type": "application/json"
         }).json_body
 
@@ -635,6 +636,6 @@ class Database(object):
             'include_docs': include_docs,
             'style': style,
         }
-        response = self.res.get("_changes", params=params).json_body
+        response = self._res.get("_changes", params=params).json_body
         for row in response['results']:
             yield row

@@ -44,9 +44,9 @@ class View(object):
             keys = mparams.pop('keys')
         
         if keys != None:
-            resp = self._db.res.post(self._view_path, payload={ 'keys': keys }, params=mparams)
+            resp = self._db._res.post(self._view_path, payload={ 'keys': keys }, params=mparams)
         else:
-            resp = self._db.res.get(self._view_path, params=mparams)
+            resp = self._db._res.get(self._view_path, params=mparams)
         
         schema = self._schema
         for row in resp.json_body['rows']:

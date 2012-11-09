@@ -7,9 +7,9 @@ import requests
 from collections import deque
 
 from .exceptions import ResourceNotFound 
-from . import resource
 from .utils import url_quote
 from .database import Database
+from .resource import CouchdbResource
 
 class Session(requests.Session):
     pass
@@ -19,7 +19,6 @@ class Server(object):
     A Server object can be used like any `dict` object.
     """
 
-    resource_class = resource.CouchdbResource
     uuid_batch_count = 1000
     
     def __init__(self, uri='http://127.0.0.1:5984', session=None):
@@ -34,7 +33,7 @@ class Server(object):
         if not session:
             session = Session()
 
-        self.res = self.resource_class(session, uri)
+        self.res = CouchdbResource(session, uri)
 
     def info(self):
         return self.res.get().json_body

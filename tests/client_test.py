@@ -13,12 +13,26 @@ from couchdbreq import ResourceNotFound, ResourceConflict, Server, BulkSaveError
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
         self.Server = Server()
-
+        
+        try:
+            self.Server.delete_db('couchdbkit_test')
+        except ResourceNotFound:
+            pass
+        
+        try:
+            self.Server.delete_db('couchdbkit/test')
+        except ResourceNotFound:
+            pass
+        
     def tearDown(self):
         try:
             self.Server.delete_db('couchdbkit_test')
+        except ResourceNotFound:
+            pass
+        
+        try:
             self.Server.delete_db('couchdbkit/test')
-        except:
+        except ResourceNotFound:
             pass
 
     def testGetInfo(self):
@@ -44,7 +58,7 @@ class ClientServerTestCase(unittest.TestCase):
     def testGetOrCreateDb(self):
         # create the database
         gocdb = self.Server.get_or_create_db("get_or_create_db")
-        self.assert_(gocdb.dbname == "get_or_create_db")
+        self.assert_(gocdb.name == "get_or_create_db")
         self.assert_("get_or_create_db" in self.Server)
         self.Server.delete_db("get_or_create_db")
         # get the database (already created)
@@ -52,7 +66,7 @@ class ClientServerTestCase(unittest.TestCase):
         db = self.Server.create_db("get_or_create_db")
         self.assert_("get_or_create_db" in self.Server)
         gocdb = self.Server.get_or_create_db("get_or_create_db")
-        self.assert_(db.dbname == gocdb.dbname)
+        self.assert_(db.name == gocdb.name)
         self.Server.delete_db("get_or_create_db")
         
 
