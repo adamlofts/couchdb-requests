@@ -81,7 +81,7 @@ class Database(object):
 
         self.name = name
         
-        self._server = server
+        self.server = server
         self._res = server._res(name, ":") # / is not safe for the dbname
 
         try:
@@ -136,13 +136,13 @@ class Database(object):
             ddocs.append(ddoc['doc'])
 
         # delete db
-        self._server.delete_db(self.name)
+        self.server.delete_db(self.name)
 
         # we let a chance to the system to sync
         time.sleep(0.2)
 
         # recreate db + ddocs
-        self._server.create_db(self.name)
+        self.server.create_db(self.name)
         self.bulk_save(ddocs)
 
     def __contains__(self, docid):
@@ -227,7 +227,7 @@ class Database(object):
                     raise
         else:
             try:
-                doc['_id'] = self._server.generate_uuid()
+                doc['_id'] = self.server.generate_uuid()
                 res =  self._res.put(doc['_id'], payload=doc1,
                                     params=params).json_body
             except:
@@ -276,7 +276,7 @@ class Database(object):
                     noids = list(g)
 
             for doc in noids:
-                nextid = self._server.generate_uuid()
+                nextid = self.server.generate_uuid()
                 doc['_id'] = nextid
 
         payload = { "docs": docs1 }
@@ -389,7 +389,7 @@ class Database(object):
             docid = doc1['_id']
 
         if dest is None:
-            destination = self._server.generate_uuid()
+            destination = self.server.generate_uuid()
         elif isinstance(dest, basestring):
             if dest in self:
                 dest = self.get(dest)
