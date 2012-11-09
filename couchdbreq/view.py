@@ -13,7 +13,7 @@ class View(object):
 
     UNDEFINED_VALUE = object()
     
-    def __init__(self, db, view_path, schema=None, **params):
+    def __init__(self, db, view_path, schema=None, params=None):
         """
         Constructor of ViewResults object
 
@@ -21,7 +21,7 @@ class View(object):
         @param params: params to apply when fetching view.
 
         """
-        self.params = params
+        self._params = params
         
         self._db = db
         self._view_path = view_path
@@ -30,7 +30,7 @@ class View(object):
     def _iterator(self, **params):
         
         mparams = {}
-        for k, v in self.params.iteritems():
+        for k, v in self._params.iteritems():
             if v == View.UNDEFINED_VALUE:
                 continue
             mparams[k] = v
@@ -122,7 +122,7 @@ class View(object):
         @return A new View
         """
 
-        params = self.params.copy()
+        params = self._params.copy()
         
         if startkey != View.UNDEFINED_VALUE:
             params['startkey'] = startkey
@@ -145,4 +145,4 @@ class View(object):
         if inclusive_end != View.UNDEFINED_VALUE:
             params['inclusive_end'] = inclusive_end
             
-        return View(self._db, self._view_path, self._schema, **params)
+        return View(self._db, self._view_path, self._schema, params=params)

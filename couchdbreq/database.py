@@ -426,19 +426,26 @@ class Database(object):
         """
         design_name, view_name = view_name.split('/', 1)
         view_path = '_design/%s/_view/%s' % (design_name, view_name)
-        return View(
-            self, view_path, schema=schema,
-            startkey=startkey, endkey=endkey, keys=keys, key=key,
-            startkey_docid=startkey_docid, endkey_docid=endkey_docid,
-            stale=stale,
-            descending=descending,
-            skip=skip, limit=limit,
-            group=group, group_level=group_level,
-            reduce=reduce,
-            include_docs=include_docs,
-            inclusive_end=inclusive_end,
-            update_seq=update_seq
-        )
+        
+        params = {
+            'startkey': startkey,
+            'endkey': endkey,
+            'keys': keys,
+            'key': key,
+            'startkey_docid': startkey_docid,
+            'endkey_docid': endkey_docid,
+            'stale': stale,
+            'descending': descending,
+            'skip': skip,
+            'limit': limit,
+            'group': group,
+            'group_level': group_level,
+            'reduce': reduce,
+            'include_docs': include_docs,
+            'inclusive_end': inclusive_end,
+            'update_seq': update_seq
+        }
+        return View(self, view_path, schema=schema, params=params)
 
     def all_docs(self, by_seq=False, schema=None,
                  startkey=View.UNDEFINED_VALUE, endkey=View.UNDEFINED_VALUE,
@@ -464,19 +471,26 @@ class Database(object):
             view_path = '_all_docs_by_seq'
         else:
             view_path = '_all_docs'
-        return View(
-            self, view_path, schema=schema,
-            startkey=startkey, endkey=endkey, keys=keys, key=key,
-            startkey_docid=startkey_docid, endkey_docid=endkey_docid,
-            stale=stale,
-            descending=descending,
-            skip=skip, limit=limit,
-            group=group, group_level=group_level,
-            reduce=reduce,
-            include_docs=include_docs,
-            inclusive_end=inclusive_end,
-            update_seq=update_seq
-        )
+
+        params = {
+            'startkey': startkey,
+            'endkey': endkey,
+            'keys': keys,
+            'key': key,
+            'startkey_docid': startkey_docid,
+            'endkey_docid': endkey_docid,
+            'stale': stale,
+            'descending': descending,
+            'skip': skip,
+            'limit': limit,
+            'group': group,
+            'group_level': group_level,
+            'reduce': reduce,
+            'include_docs': include_docs,
+            'inclusive_end': inclusive_end,
+            'update_seq': update_seq
+        }
+        return View(self, view_path, schema=schema, params=params)
 
     def put_attachment(self, doc, content, name=None, content_type=None,
             content_length=None):
