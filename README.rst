@@ -84,3 +84,6 @@ Getting Started
   view2 = view.filter(startkey="d")
   for row in view2:
     print row['value']
+
+  server.delete_db("my_new_db")
+
