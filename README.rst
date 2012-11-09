@@ -70,7 +70,7 @@ Getting Started
     'language': 'javascript',
     'views': {
       'all': {
-        "map": """function(doc) { if (doc.docType == "test") { emit(doc._id, doc.value); }}"""
+        "map": """function(doc) { emit(doc._id, doc.value); }"""
       }
     }
   }
@@ -81,6 +81,6 @@ Getting Started
   for row in view:
     print row['value']
 
-  view2 = view.filter(startkey="d"):
+  view2 = view.filter(startkey="d")
   for row in view2:
     print row['value']
