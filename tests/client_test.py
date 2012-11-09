@@ -753,24 +753,24 @@ class ClientViewTestCase(unittest.TestCase):
 
         results = db.view('test/test3', key="test")
         self.assert_(len(results) == 2)
+        
+    def testReplicate(self):
+        
+        self.Server.create_db('couchdbkit_test')
+        self.Server.create_db('couchdbkit_test2')
+        
+        db1 = self.Server.get_db('couchdbkit_test')
+        db2 = self.Server.get_db('couchdbkit_test2')
+        
+        self.assertRaises(ResourceNotFound, self.Server.get_db, 'notfoundcouchdbkit_test')
 
-       
-
-        results = db.view('test/test3', key="test2")
-        self.assert_(len(results) == 3)
-
-        results = db.view('test/test2', startkey="200811")
-        self.assert_(len(results) == 5)
-
-        results = db.view('test/test2', startkey="20081107",
-                endkey="20081108")
-        self.assert_(len(results) == 3)
-
-        results = db.view('test/test1', keys=['test', 'machin'] )
-        self.assert_(len(results) == 3)
-
-        self.Server.delete_db('couchdbkit_test')
-
+        doc1 = { '_id': 'test1', 'string': 'test', 'number': 4, 
+                'docType': 'test', 'date': '20081107' }
+        db1.save_doc(doc1)
+        
+        self.Server.replicate(db1.name, db2.name)
+        
+        self.assertEqual(len(db2), 1)
 
 if __name__ == '__main__':
     unittest.main()

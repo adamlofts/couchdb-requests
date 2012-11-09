@@ -143,7 +143,7 @@ class CouchdbResource(object):
             if not hasattr(payload, 'read') and not isinstance(payload, basestring):
                 payload = json.dumps(payload).encode('utf-8')
                 headers.setdefault('Content-Type', 'application/json')
-                
+
             if isinstance(payload, unicode):
                 payload = payload.encode(self.charset)
         
@@ -190,6 +190,9 @@ class CouchdbResource(object):
         'include_docs',
         'inclusive_end',
         'update_seq',
+        'cancel',
+        'continuous',
+        'create_target',
     )
     
     def _encode_params(self, params):

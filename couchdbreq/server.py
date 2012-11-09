@@ -70,8 +70,16 @@ class Server(object):
             safe=":")).json_body
         return ret
 
-    #TODO: maintain list of replications
-    def replicate(self, source, target, **params):
+    def replicate(self,
+        source,
+        target,
+        cancel=False,
+        continuous=False,
+        create_target=False,
+        doc_ids=None,
+        filter=None,
+        proxy=None,
+        query_params=None):
         """
         simple handler for replication
 
@@ -83,12 +91,23 @@ class Server(object):
         http://wiki.apache.org/couchdb/Replication
 
         """
-        payload = {
+        params = {
             "source": source,
             "target": target,
+            "cancel": cancel,
+            "continuous": continuous,
+            "create_target": create_target,
         }
-        payload.update(params)
-        resp = self.res.post('_replicate', payload=payload)
+        if doc_ids:
+            params["doc_ids"] = doc_ids
+        if filter:
+            params["filter"] = filter
+        if proxy:
+            params["proxy"] = proxy
+        if query_params:
+            params["query_params"] = query_params
+        
+        resp = self.res.post('_replicate', payload=params)
         return resp.json_body
 
     def active_tasks(self):
