@@ -7,7 +7,7 @@ __author__ = 'benoitc@e-engura.com (Benoît Chesneau)'
 
 import unittest
 
-from couchdbreq import ResourceNotFound, RequestFailed, ResourceConflict, Server, Database, Document, BulkSaveError
+from couchdbreq import ResourceNotFound, ResourceConflict, Server, BulkSaveError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -25,12 +25,11 @@ class ClientServerTestCase(unittest.TestCase):
         self.assert_(info.has_key('version'))
         
     def testCreateDb(self):
-        res = self.Server.create_db('couchdbkit_test')
-        self.assert_(isinstance(res, Database) == True)
+        self.Server.create_db('couchdbkit_test')
         all_dbs = self.Server.get_db_names()
         self.assert_('couchdbkit_test' in all_dbs)
         self.Server.delete_db('couchdbkit_test')
-        res = self.Server.create_db("couchdbkit/test")
+        self.Server.create_db("couchdbkit/test")
         self.assert_('couchdbkit/test' in self.Server.get_db_names())
         self.Server.delete_db('couchdbkit/test')
         
@@ -88,7 +87,6 @@ class ClientDatabaseTestCase(unittest.TestCase):
         
     def testCreateDatabase(self):
         db = self.Server.create_db('couchdbkit_test')
-        self.assert_(isinstance(db, Database) == True)
         info = db.info()
         self.assert_(info['db_name'] == 'couchdbkit_test')
         self.Server.delete_db('couchdbkit_test')

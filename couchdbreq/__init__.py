@@ -5,16 +5,12 @@
 
 from .version import version_info, __version__
 
-try:
-    from .resource import  CouchdbResource
-    from .exceptions import InvalidAttachment, DuplicatePropertyError,\
-BadValueError, MultipleResultsFound, NoResultFound, ReservedWordError,\
-DocsPathNotFound, BulkSaveError, ResourceNotFound, ResourceConflict, \
-PreconditionFailed, RequestFailed
+from .exceptions import InvalidAttachment, DuplicatePropertyError, BadValueError, MultipleResultsFound, NoResultFound, ReservedWordError
+from .exceptions import DocsPathNotFound, BulkSaveError, ResourceNotFound, ResourceConflict, PreconditionFailed, RequestFailed
 
-    from .server import Server, Session
-    from .database import Database
+from .server import Server, Session
 
+"""
     from .schema import Property, Property, IntegerProperty,\
 DecimalProperty, BooleanProperty, FloatProperty, DateTimeProperty,\
 DateProperty, TimeProperty, dict_to_json, dict_to_json, dict_to_json,\
@@ -23,35 +19,4 @@ StaticDocument, QueryMixin, AttachmentMixin, SchemaProperty, SchemaListProperty,
 SchemaDictProperty, \
 ListProperty, DictProperty, StringListProperty, contain, StringProperty, \
 SetProperty
-
-except ImportError:
-    import traceback
-    traceback.print_exc()
-
-import logging
-
-LOG_LEVELS = {
-    "critical": logging.CRITICAL,
-    "error": logging.ERROR,
-    "warning": logging.WARNING,
-    "info": logging.INFO,
-    "debug": logging.DEBUG
-}
-
-def set_logging(level, handler=None):
-    """
-    Set level of logging, and choose where to display/save logs
-    (file or standard output).
-    """
-    if not handler:
-        handler = logging.StreamHandler()
-
-    loglevel = LOG_LEVELS.get(level, logging.INFO)
-    logger = logging.getLogger('couchdbkit')
-    logger.setLevel(loglevel)
-    format = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
-    datefmt = r"%Y-%m-%d %H:%M:%S"
-
-    handler.setFormatter(logging.Formatter(format, datefmt))
-    logger.addHandler(handler)
-
+"""
