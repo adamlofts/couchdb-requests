@@ -11,7 +11,7 @@ from . import __version__
 from .exceptions import RequestError, ResourceError
 from .utils import make_uri
 
-USER_AGENT = 'couchdbkit/%s' % __version__
+USER_AGENT = 'couchdbreq/%s' % __version__
 
 class ResponseStream(object):
     
