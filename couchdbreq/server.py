@@ -33,16 +33,16 @@ class Server(object):
         if not session:
             session = Session()
 
-        self.res = CouchdbResource(session, uri)
+        self._res = CouchdbResource(session, uri)
 
     def info(self):
-        return self.res.get().json_body
+        return self._res.get().json_body
 
     def get_db_names(self):
         """ get list of databases in CouchDb host
 
         """
-        return self.res.get('_all_dbs').json_body
+        return self._res.get('_all_dbs').json_body
 
     def get_db(self, dbname):
         return Database(self, dbname)
@@ -66,7 +66,7 @@ class Server(object):
         return Database(self, dbname, get_or_create=True)
 
     def delete_db(self, dbname):
-        ret = self.res.delete('%s/' % url_quote(dbname,
+        ret = self._res.delete('%s/' % url_quote(dbname,
             safe=":")).json_body
         return ret
 
@@ -107,25 +107,25 @@ class Server(object):
         if query_params:
             params["query_params"] = query_params
         
-        resp = self.res.post('_replicate', payload=params)
+        resp = self._res.post('_replicate', payload=params)
         return resp.json_body
 
     def active_tasks(self):
         """ return active tasks """
-        resp = self.res.get('_active_tasks')
+        resp = self._res.get('_active_tasks')
         return resp.json_body
 
     def generate_uuid(self):
         try:
             return self._uuids.pop()
         except IndexError:
-            response = self.res.get('_uuids', params={ 'count': self.uuid_batch_count })
+            response = self._res.get('_uuids', params={ 'count': self.uuid_batch_count })
             self._uuids.extend(response.json_body["uuids"])
             return self._uuids.pop()
 
     def __contains__(self, dbname):
         try:
-            self.res.head('%s/' % url_quote(dbname, safe=":"))
+            self._res.head('%s/' % url_quote(dbname, safe=":"))
         except ResourceNotFound:
             return False
         return True

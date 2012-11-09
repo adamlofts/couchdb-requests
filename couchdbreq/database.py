@@ -82,7 +82,7 @@ class Database(object):
         self.name = name
         
         self._server = server
-        self._res = server.res(name, ":") # / is not safe for the dbname
+        self._res = server._res(name, ":") # / is not safe for the dbname
 
         try:
             self._res.head()
