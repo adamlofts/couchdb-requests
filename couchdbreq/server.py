@@ -49,26 +49,22 @@ class Server(object):
         return Database(self, dbname)
 
     def create_db(self, dbname):
-        """ Create a database on CouchDb host
+        """
+        Create a database on CouchDb host
+        
+        If the database already exists then DatabaseExistsException is raised
 
         @param dname: str, name of db
-        @param param: custom parameters to pass to create a db. For
-        example if you use couchdbkit to access to cloudant or bigcouch:
-
-            Ex: q=12 or n=4
-
-        See https://github.com/cloudant/bigcouch for more info.
-
-        @return: Database instance if it's ok or dict message
+        @return: Database instance
         """
         return Database(self, dbname, create=True)
 
-    get_or_create_db = create_db
-    get_or_create_db.__doc__ = """
-        Try to return a Database object for dbname. If
-        database doest't exist, it will be created.
-
+    def get_or_create_db(self, dbname):
         """
+        Get a database or create a database if missing.
+        @return: Database instance
+        """
+        return Database(self, dbname, get_or_create=True)
 
     def delete_db(self, dbname):
         ret = self.res.delete('%s/' % url_quote(dbname,

@@ -11,7 +11,7 @@ import base64
 from itertools import groupby
 from mimetypes import guess_type
 
-from .exceptions import InvalidAttachment, ResourceNotFound, ResourceConflict, BulkSaveError
+from .exceptions import InvalidAttachment, ResourceNotFound, ResourceConflict, BulkSaveError, DatabaseExistsException
 from .utils import url_quote
 from .view import View
 
@@ -67,13 +67,14 @@ class Database(object):
                 v['data'] = Database.re_sp.sub('', base64.b64encode(v['data']))
         return attachments
 
-    def __init__(self, server, dbname, create=False):
+    def __init__(self, server, dbname, create=False, get_or_create=False):
         """
         Constructor for Database
 
         @param server: A Server instance
         @param dbname: The name of the database
         @param create: boolean, False by default, if True try to create the database.
+        @param ger_or_create: boolean, False by default, if True try to create the database.
         """
         self.dbname = dbname
         self.server = server
@@ -82,11 +83,16 @@ class Database(object):
         Database._validate_dbname(self.dbname)
         
         self.res = server.res(self.dbname, ":") # / is not safe for the dbname
-        if create:
-            try:
-                self.res.head()
-            except ResourceNotFound:
-                self.res.put()
+        try:
+            self.res.head()
+            
+            if create:
+                raise DatabaseExistsException()
+        except ResourceNotFound:
+            if not create and not get_or_create:
+                raise
+
+            self.res.put()
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.dbname)

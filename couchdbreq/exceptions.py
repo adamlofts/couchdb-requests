@@ -10,7 +10,10 @@ FIXME: All exceptions should derive from the same base class and the package sho
 never throw any other exceptions. 
 """
 
-class ResourceError(Exception):
+class CouchException(Exception):
+    """ Base class """
+
+class ResourceError(CouchException):
     """ default error class """
     
     status_int = None
@@ -88,6 +91,9 @@ _ExceptionMap = {
     410: ResourceGone,
     412: PreconditionFailed,
 }
+
+class DatabaseExistsException(CouchException):
+    """ Exception raised when a database already exists """
 
 class RedirectLimit(Exception):
     """Exception raised when the redirection limit is reached."""

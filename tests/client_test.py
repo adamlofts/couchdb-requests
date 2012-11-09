@@ -3,6 +3,7 @@
 # This file is part of couchdbkit released under the MIT license. 
 # See the NOTICE for more information.
 #
+from couchdbreq.exceptions import DatabaseExistsException
 __author__ = 'benoitc@e-engura.com (Benoît Chesneau)'
 
 import unittest
@@ -23,15 +24,22 @@ class ClientServerTestCase(unittest.TestCase):
     def testGetInfo(self):
         info = self.Server.info()
         self.assert_(info.has_key('version'))
-        
+    
     def testCreateDb(self):
+        
+        self.assertRaises(ResourceNotFound, self.Server.get_db, 'couchdbkit_test')
+
         self.Server.create_db('couchdbkit_test')
+        
         all_dbs = self.Server.get_db_names()
         self.assert_('couchdbkit_test' in all_dbs)
         self.Server.delete_db('couchdbkit_test')
         self.Server.create_db("couchdbkit/test")
         self.assert_('couchdbkit/test' in self.Server.get_db_names())
         self.Server.delete_db('couchdbkit/test')
+        
+        self.Server.create_db('couchdbkit_test')
+        self.assertRaises(DatabaseExistsException, self.Server.create_db, 'couchdbkit_test')
         
     def testGetOrCreateDb(self):
         # create the database
@@ -84,7 +92,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
             self.Server.delete_db('couchdbkit_test')
         except:
             pass
-        
+    
     def testCreateDatabase(self):
         db = self.Server.create_db('couchdbkit_test')
         info = db.info()
