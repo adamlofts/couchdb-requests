@@ -499,108 +499,96 @@ class Database(object):
         }
         return View(self, view_path, schema=schema, params=params)
 
-    def put_attachment(self, doc, content, name=None, content_type=None,
-            content_length=None):
-        """ Add attachement to a document. All attachments are streamed.
+    def put_attachment(self, doc, content, name=None, content_type=None, content_length=None):
+        """
+        Add attachment to a document
 
-        @param doc: dict, document object
-        @param content: string or :obj:`File` object.
-        @param name: name or attachment (file name).
-        @param content_type: string, mimetype of attachment.
-        If you don't set it, it will be autodetected.
-        @param content_lenght: int, size of attachment.
+        If you are storing unicode text then you must encode before passing it to this function. e.g.
+        db.put_attachment(doc, u"Some unicode £".encode("utf8"), "My unicode attachment", "text/plain")
+
+        @param doc: dict
+        @param content: str or file like object.
+        @param name: name of attachment (unicode or str) encoded as utf8
+        @param content_type: string, mimetype of attachment. If you don't set it, it will be autodetected.
+        @param content_lenght: int, size of attachment in bytes
 
         @return: bool, True if everything was ok.
         """
 
-        if not content:
-            content = ""
-            content_length = 0
-
-        if hasattr(content, 'read'):
-            payload = content.read()
-        else:
-            payload = content
+        if not (isinstance(content, bytes) or
+            isinstance(content, str) or 
+            hasattr(content, 'read')):
+            raise InvalidAttachment("Attachment must be a str, bytes or a stream.")
 
         if name is None:
-            if hasattr(content, "name"):
-                name = content.name
-            else:
-                raise InvalidAttachment('You should provide a valid attachment name')
+            name = 'attachment'
 
-        name = url_quote(name, safe="")
         if content_type is None:
             content_type = ';'.join(filter(None, guess_type(name)))
 
-        headers = {}
-        if content_type:
-            headers['Content-Type'] = content_type
+        headers = {
+            'Content-Type': content_type,
+        }
 
-        # add appropriate headers
-        if content_length and content_length is not None:
-            headers['Content-Length'] = unicode(content_length)
-
-        doc1, _ = _maybe_serialize(doc)
-
-        docid = Database._escape_docid(doc1['_id'])
-        res = self._res(docid).put(name, payload=payload,
-                headers=headers, params={ 'rev': doc1['_rev'] }).json_body
+        docid = Database._escape_docid(doc['_id'])
+        res = self._res(docid).put(name,
+                headers=headers, params={ 'rev': doc['_rev'] }, payload=content).json_body
 
         if res['ok']:
-            new_doc = self.get_doc(doc1['_id'], rev=res['rev'])
+            new_doc = self.get_doc(doc['_id'], rev=res['rev'])
             doc.update(new_doc)
         return res['ok']
 
     def delete_attachment(self, doc, name):
-        """ delete attachement to the document
+        """
+        Delete attachment on the document
 
-        @param doc: dict, document object in python
-        @param name: name of attachement
+        @param doc: dict
+        @param name: name of attachment (unicode or str)
 
         @return: dict, with member ok set to True if delete was ok.
         """
-        doc1, _ = _maybe_serialize(doc)
 
-        docid = Database._escape_docid(doc1['_id'])
-        name = url_quote(name, safe="")
-        res = self._res(docid).delete(name, params={ 'rev': doc1['_rev'] }).json_body
-        # FIXME: This is an extra round-trip
+        docid = Database._escape_docid(doc['_id'])
+        resp = self._res(docid).delete(name, params={ 'rev': doc['_rev'] })
+        res = resp.json_body
+
         if res['ok']:
-            new_doc = self.get_doc(doc1['_id'], rev=res['rev'])
+            new_doc = self.get_doc(doc['_id'], rev=res['rev'])
             doc.update(new_doc)
+
+            if not new_doc.has_key('_attachments') and doc.has_key('_attachments'):
+                del doc['_attachments']
+
         return res['ok']
 
     def fetch_attachment(self, id_or_doc, name, stream=False, stream_chunk_size=16 * 1024):
-        """ Get an attachment in a document
+        """
+        Get an attachment in a document
+        
+        Note: If you have stored text e.g. utf8 in the attachment you will need to decode the response
+        to this call using .decode('utf8').
 
         @param id_or_doc: str or dict, doc id or document dict
-        @param name: name of attachment
+        @param name: name of attachment (unicode or str)
         @param stream: boolean, if True return a file object
         @param stream_chunk_size: Size in bytes to return per stream chunk (default 16 * 1024)
         
-        @return: Bytestring or file like iterable
+        @return: Bytestring or file like iterable if stream=True
         """
 
         if isinstance(id_or_doc, basestring):
             docid = id_or_doc
         else:
-            doc, _ = _maybe_serialize(id_or_doc)
-            docid = doc['_id']
+            docid = id_or_doc['_id']
 
         docid = Database._escape_docid(docid)
         name = url_quote(name, safe="")
-
         resp = self._res(docid).get(name, stream=stream)
         if stream:
             return resp.body_stream(chunk_size=stream_chunk_size)
         
         content = resp.body_string()
-        
-        # Decode the attachment if content type is text
-        content_type = resp.headers['content-type']
-        if content_type.startswith("text/"):
-            return content.decode('utf-8')
-        
         return content
 
     def ensure_full_commit(self):

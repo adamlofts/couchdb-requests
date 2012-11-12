@@ -4,6 +4,7 @@
 # See the NOTICE for more information.
 #
 import unittest
+from os import path
 
 from couchdbreq import Server
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, ResourceConflict, BulkSaveError
@@ -374,9 +375,9 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db.save_doc(doc)        
         text_attachment = u"un texte attaché"
         old_rev = doc['_rev']
-        db.put_attachment(doc, text_attachment, "test", "text/plain")
+        db.put_attachment(doc, text_attachment.encode("utf8"), "test", "text/plain")
         self.assert_(old_rev != doc['_rev'])
-        fetch_attachment = db.fetch_attachment(doc, "test")
+        fetch_attachment = db.fetch_attachment(doc, "test").decode('utf8')
         self.assert_(text_attachment == fetch_attachment)
         self.Server.delete_db('couchdbkit_test')
         
@@ -384,11 +385,11 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db = self.Server.create_db('couchdbkit_test')
         doc = { 'string': 'test', 'number': 4 }
         db.save_doc(doc)        
-        text_attachment = u"a text attachment"
+        text_attachment = u"a text attachment".encode("utf8")
         db.put_attachment(doc, text_attachment, "test", "text/plain")
         stream = db.fetch_attachment(doc, "test", stream=True)
-        fetch_attachment = stream.read()
-        self.assert_(text_attachment == fetch_attachment)
+        fetch_attachment = stream.read().decode('utf8')
+        self.assertEqual(text_attachment, fetch_attachment)
         self.Server.delete_db('couchdbkit_test')
    
     def testEmptyAttachment(self):
@@ -418,14 +419,14 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db.save_doc(doc)        
         text_attachment = u"un texte attaché"
         old_rev = doc['_rev']
-        db.put_attachment(doc, text_attachment, "test", "text/plain")
+        db.put_attachment(doc, text_attachment.encode("utf8"), "test", "text/plain")
         self.assert_(old_rev != doc['_rev'])
-        fetch_attachment = db.fetch_attachment(doc, "test")
+        fetch_attachment = db.fetch_attachment(doc, "test").decode("utf8")
         self.assert_(text_attachment == fetch_attachment)
         
-        db.put_attachment(doc, text_attachment, "test/test.txt", "text/plain")
+        db.put_attachment(doc, text_attachment.encode("utf8"), "test/test.txt", "text/plain")
         self.assert_(old_rev != doc['_rev'])
-        fetch_attachment = db.fetch_attachment(doc, "test/test.txt")
+        fetch_attachment = db.fetch_attachment(doc, "test/test.txt").decode('utf8')
         self.assert_(text_attachment == fetch_attachment)
         
         self.Server.delete_db('couchdbkit_test')
@@ -437,9 +438,9 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db.save_doc(doc)        
         text_attachment = u"un texte attaché"
         old_rev = doc['_rev']
-        db.put_attachment(doc, text_attachment, "test", "text/plain")
+        db.put_attachment(doc, text_attachment.encode("utf8"), "test", "text/plain")
         self.assert_(old_rev != doc['_rev'])
-        fetch_attachment = db.fetch_attachment(doc, "test")
+        fetch_attachment = db.fetch_attachment(doc, "test").decode('utf8')
         self.assert_(text_attachment == fetch_attachment)
         self.Server.delete_db('couchdbkit_test')
         
@@ -769,6 +770,40 @@ class ClientViewTestCase(unittest.TestCase):
         self.Server.replicate(db1.name, db2.name)
         
         self.assertEqual(len(db2), 1)
+    
+    def testAttachmentStreams(self):
+        db = self.Server.create_db('couchdbkit_test')
+        doc1 = { '_id': 'test1' }
+        db.save_doc(doc1)
+        
+        with open(path.join(path.dirname(__file__), 'data', 'text_attachment.txt'), 'r+') as f:
+            db.put_attachment(doc1, f, 'attachment1', 'text/plain')
+        
+        self.assertEqual(doc1['_attachments'].keys(), ['attachment1'])
+        self.assertEqual(doc1['_attachments']['attachment1']['content_type'], 'text/plain')
+        
+        content = db.fetch_attachment(doc1, 'attachment1')
+        self.assertEqual(content, "Some unicode: î\n")
+
+        content = db.fetch_attachment(doc1, 'attachment1', stream=True)
+        self.assertEqual(content.read(), "Some unicode: î\n")
+        
+        db.delete_attachment(doc1, 'attachment1')
+        
+        with open(path.join(path.dirname(__file__), 'data', 'text_attachment.txt'), 'r+') as f:
+            db.put_attachment(doc1, f, u'attachment1/a/b/î', 'text/plain')
+        
+        self.assertEqual(doc1['_attachments'].keys(),[u'attachment1/a/b/î'])
+        db.delete_attachment(doc1, u'attachment1/a/b/î')
+        
+        with open(path.join(path.dirname(__file__), 'data', 'text_attachment.txt'), 'r+') as f:
+            db.put_attachment(doc1, f, 'attî', 'text/plain')
+            
+        db.delete_attachment(doc1, u'att\xee')
+        self.assertEqual(doc1.has_key('_attachments'), False)
+        
+        # WTF  ? Couchdb replies with a 200 status
+        db.delete_attachment(doc1, 'doesnotexist')
 
 if __name__ == '__main__':
     unittest.main()
