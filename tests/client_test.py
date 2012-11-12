@@ -784,10 +784,20 @@ class ClientViewTestCase(unittest.TestCase):
         
         content = db.fetch_attachment(doc1, 'attachment1')
         self.assertEqual(content, "Some unicode: î\n")
-
+        
         content = db.fetch_attachment(doc1, 'attachment1', stream=True)
         self.assertEqual(content.read(), "Some unicode: î\n")
         
+        content = db.fetch_attachment(doc1, 'attachment1', stream=True)
+        self.assertEqual(content.read(1), "S")
+        self.assertEqual(content.read(2), "om")
+        self.assertEqual(content.read(), "e unicode: î\n")
+        
+        content = db.fetch_attachment(doc1, 'attachment1', stream=True, stream_chunk_size=1)
+        self.assertEqual(content.read(1), "S")
+        self.assertEqual(content.read(2), "om")
+        self.assertEqual(content.read(), "e unicode: î\n")
+
         db.delete_attachment(doc1, 'attachment1')
         
         with open(path.join(path.dirname(__file__), 'data', 'text_attachment.txt'), 'r+') as f:

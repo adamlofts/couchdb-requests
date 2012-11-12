@@ -530,6 +530,9 @@ class Database(object):
             'Content-Type': content_type,
         }
 
+        if content_length != None:
+            headers['Content-Length'] = str(content_length)
+
         docid = Database._escape_docid(doc['_id'])
         res = self._res(docid).put(name,
                 headers=headers, params={ 'rev': doc['_rev'] }, payload=content).json_body

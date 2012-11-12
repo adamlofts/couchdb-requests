@@ -17,6 +17,7 @@ class ResponseStream(object):
     
     def __init__(self, it):
         self.iter = it
+        self.buf = ""
 
     def __enter__(self):
         return self
@@ -27,11 +28,22 @@ class ResponseStream(object):
     def __iter__(self):
         return self.iter
     
-    def read(self):
-        s = ''
+    def read(self, size=None):
+        buf = self.buf
+        if size and len(buf) >= size:
+            ret = buf[:size]
+            self.buf = buf[size:]
+            return ret
+            
         for chunk in self:
-            s += chunk
-        return s
+            buf += chunk
+            
+            if size and len(buf) >= size:
+                ret = buf[:size]
+                self.buf = buf[size:]
+                return ret
+
+        return buf
         
 class CouchDBResponse(object):
 
