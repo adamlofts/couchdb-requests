@@ -3,12 +3,10 @@
 # This file is part of couchdbkit released under the MIT license. 
 # See the NOTICE for more information.
 #
-from couchdbreq.exceptions import DatabaseExistsException
-__author__ = 'benoitc@e-engura.com (Benoît Chesneau)'
-
 import unittest
 
-from couchdbreq import ResourceNotFound, ResourceConflict, Server, BulkSaveError
+from couchdbreq import Server
+from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, ResourceConflict, BulkSaveError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
