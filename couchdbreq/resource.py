@@ -71,12 +71,6 @@ class CouchdbResource(object):
     response_class = CouchDBResponse
 
     def __init__(self, session, uri="http://127.0.0.1:5984"):
-        """Constructor for a `CouchdbResource` object.
-
-        CouchdbResource represent an HTTP resource to CouchDB.
-
-        @param uri: str, full uri to the server.
-        """
         self.session = session
         self.uri = uri
 
@@ -85,49 +79,21 @@ class CouchdbResource(object):
         return self.request('COPY', path=path, headers=headers, params=params, stream=stream)
 
     def get(self, path=None, headers=None, params=None, stream=False):
-        """ HTTP GET         
-        
-        :param path: string  additionnal path to the uri
-        :param headers: dict, optionnal headers that will
-            be added to HTTP request.
-        :param params: Optionnal parameterss added to the request.
-        """
         return self.request("GET", path=path, headers=headers, params=params, stream=stream)
 
     def head(self, path=None, headers=None, params=None, stream=False):
-        """ HTTP HEAD
-
-        see GET for params description.
-        """
         return self.request("HEAD", path=path, headers=headers,
                 params=params, stream=stream)
 
     def delete(self, path=None, headers=None, params=None, stream=False):
-        """ HTTP DELETE
-
-        see GET for params description.
-        """
         return self.request("DELETE", path=path, headers=headers,
                 params=params, stream=stream)
 
     def post(self, path=None, payload=None, headers=None, params=None, stream=False):
-        """ HTTP POST
-
-        :param payload: string passed to the body of the request
-        :param path: string  additionnal path to the uri
-        :param headers: dict, optionnal headers that will
-            be added to HTTP request.
-        :param params: Optionnal parameters added to the request
-        """
-
         return self.request("POST", path=path, payload=payload, 
                         headers=headers, params=params, stream=stream)
 
     def put(self, path=None, payload=None, headers=None, params=None, stream=False):
-        """ HTTP PUT
-
-        see POST for params description.
-        """
         return self.request("PUT", path=path, payload=payload,
                         headers=headers, params=params, stream=stream)
 
@@ -138,11 +104,10 @@ class CouchdbResource(object):
         @param method: str, the HTTP action to be performed:
             'GET', 'HEAD', 'POST', 'PUT', or 'DELETE'
         @param path: str or list, path to add to the uri
-        @param data: str or string or any object that could be
-            converted to JSON.
         @param headers: dict, optional headers that will
             be added to HTTP request.
         @param params: Optional parameters added to the request.
+        @param stream Should the request be streamed
         @return: response object
         """
 
