@@ -3,6 +3,8 @@ About
 
 Robust CouchDB Python interface using python-requests.
 
+Documentation: https://couchdb-requests.readthedocs.org/en/latest/
+
 Goals:
  * Only one way to do something
  * Fast and stable (connection pooled)
