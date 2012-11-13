@@ -753,6 +753,10 @@ class ClientViewTestCase(unittest.TestCase):
         results = db.view('test/test3', key="test")
         self.assert_(len(results) == 2)
         
+        self.assertEqual(db.compact(), True)
+        self.assertEqual(db.compact_view('test'), True)
+        self.assertRaises(ResourceNotFound, db.compact_view, 'doesnotexist')
+
     def testReplicate(self):
         
         self.Server.create_db('couchdbkit_test')
@@ -814,6 +818,7 @@ class ClientViewTestCase(unittest.TestCase):
         
         # WTF  ? Couchdb replies with a 200 status
         db.delete_attachment(doc1, 'doesnotexist')
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,13 +5,12 @@
 
 import re
 import urllib
-import time
 import base64
 
 from itertools import groupby
 from mimetypes import guess_type
 
-from .exceptions import InvalidAttachment, ResourceNotFound, ResourceConflict, BulkSaveError, DatabaseExistsException
+from .exceptions import InvalidAttachment, ResourceNotFound, ResourceConflict, BulkSaveError, DatabaseExistsException, CompactError
 from .utils import url_quote
 from .view import View
 
@@ -30,11 +29,8 @@ def _maybe_serialize(doc):
     return doc, False
 
 class Database(object):
-    """
-    Allows getting and settings documents, attachments and querying for data.
-
-    Do not construct this class directly. Use :py:meth:`couchdbreq.Server.get_db` or 
-    :meth:`couchdbreq.Server.create_db` to get or create a :class:`couchdbreq.database.Database`.
+    """ Object that abstract access to a CouchDB database
+    A Database object can act as a Dict object.
     """
 
     VALID_DB_NAME = re.compile(r'^[a-z][a-z0-9_$()+-/]*$')
@@ -72,7 +68,7 @@ class Database(object):
 
     def __init__(self, server, name, create=False, get_or_create=False):
         """
-        Internal constructor for Database
+        Constructor for Database
 
         @param server: A Server instance
         @param dbname: The name of the database
@@ -109,45 +105,32 @@ class Database(object):
         """
         return self._res.get().json_body
 
-    def compact(self, dname=None):
+    def compact(self):
         """
         Compact database
-        @param dname: string, name of design doc. Usefull to
-        compact a view.
         """
-        path = "/_compact"
-        if dname is not None:
-            path = "%s/%s" % (path, Database._escape_docid(dname))
-        res = self._res.post(path, headers={"Content-Type":
-            "application/json"})
-        return res.json_body
+        res = self._res.post("_compact", headers={"Content-Type": "application/json"})
+        if res.status_int == 202:
+            return True
+        raise CompactError()
+    
+    def compact_view(self, view_name):
+        """
+        Compact a view
+        
+        :param view_name: The name of the view _design/<view_name>
+        """
+        
+        path = "_compact/%s" % Database._escape_docid(view_name)
+        res = self._res.post(path, headers={"Content-Type": "application/json"})
+        if res.status_int == 202:
+            return True
+        raise CompactError()
 
     def view_cleanup(self):
         res = self._res.post('_view_cleanup', headers={"Content-Type":
             "application/json"})
         return res.json_body
-
-    def flush(self):
-        """ Remove all docs from a database
-        except design docs."""
-        # save ddocs
-        all_ddocs = self.all_docs(startkey="_design",
-                            endkey="_design/"+u"\u9999",
-                            include_docs=True)
-        ddocs = []
-        for ddoc in all_ddocs:
-            ddoc['doc'].pop('_rev')
-            ddocs.append(ddoc['doc'])
-
-        # delete db
-        self.server.delete_db(self.name)
-
-        # we let a chance to the system to sync
-        time.sleep(0.2)
-
-        # recreate db + ddocs
-        self.server.create_db(self.name)
-        self.bulk_save(ddocs)
 
     def __contains__(self, docid):
         """Test if document exists in a database

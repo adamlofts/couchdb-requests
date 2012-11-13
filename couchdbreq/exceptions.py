@@ -13,6 +13,10 @@ never throw any other exceptions.
 class CouchException(Exception):
     """ Base class """
 
+class CompactError(CouchException):
+    """ unkown exception raised by the designer """
+
+
 class ResourceError(CouchException):
     """ default error class """
     
