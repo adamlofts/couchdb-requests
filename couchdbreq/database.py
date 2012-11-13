@@ -58,10 +58,10 @@ class Database(object):
         """
         Internal constructor for Database
 
-        @param server: A Server instance
-        @param dbname: The name of the database
-        @param create: boolean, False by default, if True try to create the database.
-        @param ger_or_create: boolean, False by default, if True try to create the database.
+        :param server: A Server instance
+        :param dbname: The name of the database
+        :param create: boolean, False by default, if True try to create the database.
+        :param ger_or_create: boolean, False by default, if True try to create the database.
         """
         
         Database._validate_dbname(name)
@@ -89,7 +89,7 @@ class Database(object):
         """
         Get database information
 
-        @return: dict
+        :return: dict
         """
         return self._res.get().json_body
 
@@ -140,12 +140,12 @@ class Database(object):
         """
         Get document from database
 
-        @param docid: str, document id to retrieve
-        @param rev: Get a specific revision of a document
-        @param schema: A schema to pass. This is an object with a function wrap_doc(doc)
+        :param docid: str, document id to retrieve
+        :param rev: Get a specific revision of a document
+        :param schema: A schema to pass. This is an object with a function wrap_doc(doc)
         which will be used to map the response.
         
-        @return: dict, representation of CouchDB document as a dict.
+        :return: dict, representation of CouchDB document as a dict.
         """
 
         params = {}
@@ -159,9 +159,11 @@ class Database(object):
         return doc
 
     def get_rev(self, docid):
-        """ Get last revision from docid (the '_rev' member)
-        @param docid: str, undecoded document id.
-        @return rev: str, the last revision of document.
+        """
+        Get last revision from docid (the '_rev' member)
+
+        :param docid: str, undecoded document id.
+        :return rev: str, the last revision of document.
         """
         response = self._res.head(Database._escape_docid(docid))
         return response.headers['etag'].strip('"')
@@ -212,9 +214,9 @@ class Database(object):
         """
         Save multiple docs at once
 
-        @param docs: list of docs
-        @param use_uuids: add _id in doc who don't have it already set.
-        @param all_or_nothing: In the case of a power failure, when the database
+        :param docs: list of docs
+        :param use_uuids: add _id in doc who don't have it already set.
+        :param all_or_nothing: In the case of a power failure, when the database
         restarts either all the changes will have been saved or none of them.
         However, it does not do conflict checking.
 
@@ -251,13 +253,11 @@ class Database(object):
         
         It adds '_deleted' member to doc then uses bulk_save to save them.
 
-        @param all_or_nothing: In the case of a power failure, when the database
+        :param all_or_nothing: In the case of a power failure, when the database
         restarts either all the changes will have been saved or none of them.
         However, it does not do conflict checking, so the documents will
 
         .. seealso:: `HTTP Bulk Document API <http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API>`
-
-
         """
         for doc in docs:
             doc['_deleted'] = True
@@ -286,9 +286,11 @@ class Database(object):
         return result
 
     def copy_doc(self, doc, dest=None):
-        """ copy an existing document to a new id. If dest is None, a new uuid will be requested
-        @param doc: dict or string, document or document id
-        @param dest: basestring or dict. if _rev is specified in dict it will override the doc
+        """
+        Copy an existing document to a new id. If dest is None, a new uuid will be requested
+        
+        :param doc: dict or string, document or document id
+        :param dest: basestring or dict. if _rev is specified in dict it will override the doc
         """
 
         if isinstance(doc, basestring):
@@ -332,14 +334,13 @@ class Database(object):
              inclusive_end=True,
              update_seq=False):
         """
-        Get the view results
+        Query for view results
         
-        @param view_name 'designname/viewname'
-        @param schema: A schema to pass. This is an object with a function wrap_row(row)
+        :param view_name: 'designname/viewname'
+        :param schema: A schema to pass. This is an object with a function wrap_row(row)
         which will be used to map the response.
-        @param params: params of the view
         
-        @return A View object
+        :return: :class:`couchreq.view.View`
         """
         design_name, view_name = view_name.split('/', 1)
         view_path = '_design/%s/_view/%s' % (design_name, view_name)
@@ -376,13 +377,12 @@ class Database(object):
                  include_docs=False,
                  inclusive_end=True,
                  update_seq=False):
-        """Get all documents from a database
-        You can use all(), one(), first() just like views
-
-        Args:
-        @param by_seq: bool, if True the "_all_docs_by_seq" is passed to
-        couchdb. It will return an updated list of all documents.
-        @return: View
+        """
+        Get all documents from a database
+        
+        You can use all(), one(), first() on the returned View object just like a View from :meth:`couchdbreq.database.view`.
+        
+        :return: :class:`couchreq.view.View`
         """
         if by_seq:
             view_path = '_all_docs_by_seq'
@@ -416,13 +416,13 @@ class Database(object):
         If you are storing unicode text then you must encode before passing it to this function. e.g.
         db.put_attachment(doc, u"Some unicode £".encode("utf8"), "My unicode attachment", "text/plain")
 
-        @param doc: dict
-        @param content: str or file like object.
-        @param name: name of attachment (unicode or str) encoded as utf8
-        @param content_type: string, mimetype of attachment. If you don't set it, it will be autodetected.
-        @param content_lenght: int, size of attachment in bytes
+        :param doc: dict
+        :param content: str or file like object.
+        :param name: name of attachment (unicode or str) encoded as utf8
+        :param content_type: string, mimetype of attachment. If you don't set it, it will be autodetected.
+        :param content_lenght: int, size of attachment in bytes
 
-        @return: bool, True if everything was ok.
+        :return: bool, True if everything was ok.
         """
 
         if not (isinstance(content, bytes) or
@@ -456,10 +456,10 @@ class Database(object):
         """
         Delete attachment on the document
 
-        @param doc: dict
-        @param name: name of attachment (unicode or str)
+        :param doc: dict
+        :param name: name of attachment (unicode or str)
 
-        @return: dict, with member ok set to True if delete was ok.
+        :return: dict, with member ok set to True if delete was ok.
         """
 
         docid = Database._escape_docid(doc['_id'])
@@ -482,12 +482,12 @@ class Database(object):
         Note: If you have stored text e.g. utf8 in the attachment you will need to decode the response
         to this call using .decode('utf8').
 
-        @param id_or_doc: str or dict, doc id or document dict
-        @param name: name of attachment (unicode or str)
-        @param stream: boolean, if True return a file object
-        @param stream_chunk_size: Size in bytes to return per stream chunk (default 16 * 1024)
+        :param id_or_doc: str or dict, doc id or document dict
+        :param name: name of attachment (unicode or str)
+        :param stream: boolean, if True return a file object
+        :param stream_chunk_size: Size in bytes to return per stream chunk (default 16 * 1024)
         
-        @return: Bytestring or file like iterable if stream=True
+        :return: Bytestring or file like iterable if stream=True
         """
 
         if isinstance(id_or_doc, basestring):
