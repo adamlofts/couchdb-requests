@@ -149,6 +149,13 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db.save_doc(doc)
         doc = db.get_doc(doc['_id'])
         self.assert_(doc['number'] == 6)
+        
+        oldrev = doc['_rev']
+        doc['test1'] = True
+        db.save_doc(doc, batch=True)
+        # Rev does not change
+        self.assertEqual(oldrev, doc['_rev'])
+        
         self.Server.delete_db('couchdbkit_test')
         
     def testDocWithSlashes(self):
@@ -186,23 +193,6 @@ class ClientDatabaseTestCase(unittest.TestCase):
         rev = db.get_rev(doc['_id'])
         self.assert_(rev == doc['_rev'])
         
-    def testForceUpdate(self):
-        db = self.Server.create_db('couchdbkit_test')
-        doc = {}
-        db.save_doc(doc)
-        doc1 = doc.copy()
-        db.save_doc(doc)
-        self.assertRaises(ResourceConflict, db.save_doc, doc1)
-        
-        is_conflict = False
-        try:
-            db.save_doc(doc1, force_update=True)
-        except ResourceConflict:
-            is_conflict = True
-
-        self.assert_(is_conflict == False)
-        
-    
     def testMultipleDocWithSlashes(self):
         db = self.Server.create_db('couchdbkit_test')
         doc = { '_id': "a/b"}
@@ -217,35 +207,6 @@ class ClientDatabaseTestCase(unittest.TestCase):
             doc = db.get_doc('http:%2F%2Fa')
         self.assertRaises(ResourceNotFound, not_found)
 
-    def testFlush(self):
-        db = self.Server.create_db('couchdbkit_test')
-        doc1 = { '_id': 'test', 'string': 'test', 'number': 4 }
-        db.save_doc(doc1)
-        doc2 = { 'string': 'test', 'number': 4, '_id': 'test2' }
-        db.save_doc(doc2)
-        self.assert_('test' in db)
-        self.assert_('test2' in db)
-        design_doc = {
-            '_id': '_design/test',
-            'language': 'javascript',
-            'views': {
-                'all': {
-                    "map": """function(doc) { if (doc.docType == "test") { emit(doc._id, doc);
-            }}"""
-                }
-            }
-        }
-        db.save_doc(design_doc)
-        self.assert_(len(db) == 3)
-        db.flush()
-        self.assert_(len(db) == 1)
-        self.assertFalse('test' in db)
-        self.assertFalse('test2' in db)
-        self.assert_('_design/test' in db)
-        ddoc = db.get_doc("_design/test")
-        self.assert_('all' in ddoc['views'])
-        self.Server.delete_db('couchdbkit_test')
-    
     def testDbLen(self):
         db = self.Server.create_db('couchdbkit_test')
         doc1 = { 'string': 'test', 'number': 4 }
@@ -756,7 +717,7 @@ class ClientViewTestCase(unittest.TestCase):
         self.assertEqual(db.compact(), True)
         self.assertEqual(db.compact_view('test'), True)
         self.assertRaises(ResourceNotFound, db.compact_view, 'doesnotexist')
-
+        
     def testReplicate(self):
         
         self.Server.create_db('couchdbkit_test')

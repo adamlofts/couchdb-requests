@@ -58,7 +58,7 @@ class Database(object):
     re_sp = re.compile('\s')
     
     @staticmethod
-    def encode_attachments(attachments):
+    def _encode_attachments(attachments):
         for v in attachments.itervalues():
             if v.get('stub', False):
                 continue
@@ -174,66 +174,49 @@ class Database(object):
         response = self._res.head(Database._escape_docid(docid))
         return response.headers['etag'].strip('"')
 
-    def save_doc(self, doc, encode_attachments=True, force_update=False,
-            **params):
-        """ Save a document. It will use the `_id` member of the document
+    def save_doc(self, doc=None, encode_attachments=True, batch=False):
+        """
+        Save a document. It will use the `_id` member of the document
         or request a new uuid from CouchDB. IDs are attached to
         documents on the client side because POST has the curious property of
         being automatically retried by proxies in the event of network
-        segmentation and lost responses. (Idee from `Couchrest <http://github.com/jchris/couchrest/>`)
+        segmentation and lost responses.
 
-        @param doc: dict.  doc is updated
-        with doc '_id' and '_rev' properties returned
-        by CouchDB server when you save.
-        @param force_update: boolean, if there is conlict, try to update
-        with latest revision
-        @param params, list of optionnal params, like batch="ok"
-
-        @return res: result of save. doc is updated in the mean time
+        :param doc: dict. doc is updated with doc '_id' and '_rev' properties returned by CouchDB server when you save.
+        :param batch: If true then use reduced guarantee that the document has been saved. The _rev field
+                will not be updated.
+        :return: doc updated with '_id' and '_rev'
+        :raise: :class:`couchdbreq.exceptions.ResourceConflict` if the save generated a conflict
         """
         if doc is None:
             doc1 = {}
         else:
-            doc1, schema = _maybe_serialize(doc)
+            doc1 = doc
 
         if '_attachments' in doc1 and encode_attachments:
-            doc1['_attachments'] = Database.encode_attachments(doc['_attachments'])
+            doc1['_attachments'] = Database._encode_attachments(doc['_attachments'])
+            
+        params = None
+        if batch:
+            params = { 'batch': 'ok' }
 
         if '_id' in doc:
             docid = doc1['_id']
-            docid1 = Database._escape_docid(doc1['_id'])
-            try:
-                res = self._res.put(docid1, payload=doc1,
-                        params=params).json_body
-            except ResourceConflict:
-                if force_update:
-                    doc1['_rev'] = self.get_rev(docid)
-                    res =self._res.put(docid1, payload=doc1,
-                            params=params).json_body
-                else:
-                    raise
         else:
-            try:
-                doc['_id'] = self.server.generate_uuid()
-                res =  self._res.put(doc['_id'], payload=doc1,
-                                    params=params).json_body
-            except:
-                res = self._res.post(payload=doc1, params=params).json_body
+            docid = self.server.generate_uuid()
+            
+        docid1 = Database._escape_docid(docid)
+        res = self._res.put(docid1, payload=doc1, params=params).json_body
 
-        if 'batch' in params and 'id' in res:
+        if batch:
             doc1.update({ '_id': res['id']})
         else:
             doc1.update({'_id': res['id'], '_rev': res['rev']})
 
-
-        if schema:
-            doc._doc = doc1
-        else:
-            doc.update(doc1)
+        doc.update(doc1)
         return res
 
-    def save_docs(self, docs, use_uuids=True, all_or_nothing=False,
-            **params):
+    def save_docs(self, docs, use_uuids=True, all_or_nothing=False):
         """ bulk save. Modify Multiple Documents With a Single Request
 
         @param docs: list of docs
@@ -272,7 +255,7 @@ class Database(object):
 
         # update docs
         results = self._res.post('_bulk_docs',
-                payload=payload, params=params).json_body
+                payload=payload).json_body
 
         errors = []
         for i, res in enumerate(results):
