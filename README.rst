@@ -20,7 +20,7 @@ Plan to implement schema support in the future but right now it is not supported
 Dependencies
 -----
 
-python-requests >= 0.12.1
+python-requests >= 0.14.1
 
 Getting Started
 -----
