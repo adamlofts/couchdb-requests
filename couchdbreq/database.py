@@ -7,26 +7,11 @@ import re
 import urllib
 import base64
 
-from itertools import groupby
 from mimetypes import guess_type
 
-from .exceptions import InvalidAttachment, ResourceNotFound, ResourceConflict, BulkSaveError, DatabaseExistsException, CompactError
+from .exceptions import InvalidAttachment, ResourceNotFound, BulkSaveError, DatabaseExistsException, CompactError
 from .utils import url_quote
 from .view import View
-
-def _maybe_serialize(doc):
-    if hasattr(doc, "to_json"):
-        # try to validate doc first
-        try:
-            doc.validate()
-        except AttributeError:
-            pass
-
-        return doc.to_json(), True
-    elif isinstance(doc, dict):
-        return doc.copy(), False
-
-    return doc, False
 
 class Database(object):
     """ Object that abstract access to a CouchDB database
@@ -293,22 +278,18 @@ class Database(object):
         })
         return result
 
-    def copy_doc(self, doc, dest=None, headers=None):
+    def copy_doc(self, doc, dest=None):
         """ copy an existing document to a new id. If dest is None, a new uuid will be requested
         @param doc: dict or string, document or document id
         @param dest: basestring or dict. if _rev is specified in dict it will override the doc
         """
 
-        if not headers:
-            headers = {}
-
-        doc1, _ = _maybe_serialize(doc)
-        if isinstance(doc1, basestring):
-            docid = doc1
+        if isinstance(doc, basestring):
+            docid = doc
         else:
-            if not '_id' in doc1:
+            if not '_id' in doc:
                 raise KeyError('_id is required to copy a doc')
-            docid = doc1['_id']
+            docid = doc['_id']
 
         if dest is None:
             destination = self.server.generate_uuid()
@@ -325,7 +306,7 @@ class Database(object):
                 raise KeyError("dest doesn't exist or this not a document ('_id' or '_rev' missig).")
 
         if destination:
-            headers.update({"Destination": str(destination)})
+            headers = { "Destination": str(destination) }
             result = self._res.copy('%s' % docid, headers=headers).json_body
             return result
 

@@ -6,12 +6,13 @@
 import unittest
 from os import path
 
-from couchdbreq import Server
+from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, ResourceConflict, BulkSaveError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.Server = Server()
+        session = Session(timeout=5)
+        self.Server = Server(session=session)
         
         try:
             self.Server.delete_db('couchdbkit_test')
