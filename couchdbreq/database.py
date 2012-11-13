@@ -217,74 +217,48 @@ class Database(object):
         return res
 
     def save_docs(self, docs, use_uuids=True, all_or_nothing=False):
-        """ bulk save. Modify Multiple Documents With a Single Request
+        """
+        Save multiple docs at once
 
         @param docs: list of docs
         @param use_uuids: add _id in doc who don't have it already set.
         @param all_or_nothing: In the case of a power failure, when the database
         restarts either all the changes will have been saved or none of them.
-        However, it does not do conflict checking, so the documents will
+        However, it does not do conflict checking.
 
         .. seealso:: `HTTP Bulk Document API <http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API>`
-
         """
 
-        docs1 = []
-        docs_schema = []
-        for doc in docs:
-            doc1, schema = _maybe_serialize(doc)
-            docs1.append(doc1)
-            docs_schema.append(schema)
-
-        def is_id(doc):
-            return '_id' in doc
-
         if use_uuids:
-            noids = []
-            for k, g in groupby(docs1, is_id):
-                if not k:
-                    noids = list(g)
+            for doc in docs:
+                if '_id' not in doc:
+                    doc['_id'] = self.server.generate_uuid()
 
-            for doc in noids:
-                nextid = self.server.generate_uuid()
-                doc['_id'] = nextid
-
-        payload = { "docs": docs1 }
+        payload = { "docs": docs }
         if all_or_nothing:
             payload["all_or_nothing"] = True
 
-        # update docs
-        results = self._res.post('_bulk_docs',
-                payload=payload).json_body
+        results = self._res.post('_bulk_docs', payload=payload).json_body
 
         errors = []
         for i, res in enumerate(results):
             if 'error' in res:
                 errors.append(res)
             else:
-                if docs_schema[i]:
-                    docs[i]._doc.update({
-                        '_id': res['id'],
-                        '_rev': res['rev']
-                    })
-                else:
-                    docs[i].update({
-                        '_id': res['id'],
-                        '_rev': res['rev']
-                    })
+                docs[i].update({
+                    '_id': res['id'],
+                    '_rev': res['rev']
+                })
         if errors:
             raise BulkSaveError(errors, results)
         return results
-    bulk_save = save_docs
 
-    def delete_docs(self, docs, all_or_nothing=False,
-            empty_on_delete=False, **params):
-        """ bulk delete.
+    def delete_docs(self, docs, all_or_nothing=False):
+        """
+        Delete many docs at once.
+        
         It adds '_deleted' member to doc then uses bulk_save to save them.
 
-        @param empty_on_delete: default is False if you want to make
-        sure the doc is emptied and will not be stored as is in Apache
-        CouchDB.
         @param all_or_nothing: In the case of a power failure, when the database
         restarts either all the changes will have been saved or none of them.
         However, it does not do conflict checking, so the documents will
@@ -293,48 +267,26 @@ class Database(object):
 
 
         """
+        for doc in docs:
+            doc['_deleted'] = True
 
-        if empty_on_delete:
-            for doc in docs:
-                new_doc = {"_id": doc["_id"],
-                        "_rev": doc["_rev"],
-                        "_deleted": True}
-                doc.clear()
-                doc.update(new_doc)
-        else:
-            for doc in docs:
-                doc['_deleted'] = True
-
-        return self.bulk_save(docs, use_uuids=False,
-                all_or_nothing=all_or_nothing, **params)
-
-    bulk_delete = delete_docs
+        return self.save_docs(docs, use_uuids=False, all_or_nothing=all_or_nothing)
 
     def delete_doc(self, doc):
-        """ delete a document
-        @param doc: dict,  full doc.
-        @return: dict like:
-
-        .. code-block:: python
-
-            {"ok":true,"rev":"2839830636"}
+        """
+        Delete a document
+        
+        The document will have a _deleted field set to true.
+        
+        :param doc: The doc
+        :return: dict like: {"ok":true,"rev":"2839830636"}
         """
 
-        #doc1, schema = _maybe_serialize(doc)
-        #if isinstance(doc1, dict):
         if not '_id' or not '_rev' in doc:
             raise KeyError('_id and _rev are required to delete a doc')
 
         docid = Database._escape_docid(doc['_id'])
         result = self._res.delete(docid, params={ 'rev': doc['_rev'] }).json_body
-        """
-        if schema:
-            doc._doc.update({
-                "_rev": result['rev'],
-                "_deleted": True
-            })
-        elif isinstance(doc, dict):
-        """
         doc.update({
             "_rev": result['rev'],
             "_deleted": True

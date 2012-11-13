@@ -198,7 +198,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         doc = { '_id': "a/b"}
         doc1 = { '_id': "http://a"}
         doc3 = { '_id': '_design/a' }
-        db.bulk_save([doc, doc1, doc3])
+        db.save_docs([doc, doc1, doc3])
         self.assert_( "a/b" in db) 
         self.assert_( "http://a" in db)
         self.assert_( "_design/a" in db)
@@ -413,7 +413,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 4 },
                 { 'string': 'test', 'number': 6 }
         ]
-        db.bulk_save(docs)
+        db.save_docs(docs)
         self.assert_(len(db) == 4)
         self.assert_('_id' in docs[0])
         self.assert_('_rev' in docs[0])
@@ -421,7 +421,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.assert_(doc['number'] == 4)
         docs[3]['number'] = 6
         old_rev = docs[3]['_rev']
-        db.bulk_save(docs)
+        db.save_docs(docs)
         self.assert_(docs[3]['_rev'] != old_rev)
         doc = db.get_doc(docs[3]['_id'])
         self.assert_(doc['number'] == 6)
@@ -431,7 +431,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { '_id': 'test2', 'string': 'test', 'number': 42 },
                 { 'string': 'test', 'number': 6 }
         ]
-        db.bulk_save(docs)
+        db.save_docs(docs)
         doc = db.get_doc('test2')
         self.assert_(doc['number'] == 42) 
         self.Server.delete_db('couchdbkit_test')
@@ -444,9 +444,9 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 4 },
                 { 'string': 'test', 'number': 6 }
         ]
-        db.bulk_save(docs)
+        db.save_docs(docs)
         self.assert_(len(db) == 4)
-        db.bulk_delete(docs)
+        db.delete_docs(docs)
         self.assert_(len(db) == 0)
         self.assert_(db.info()['doc_del_count'] == 4)
 
@@ -460,7 +460,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 4 },
                 { 'string': 'test', 'number': 6 }
         ]
-        db.bulk_save(docs)
+        db.save_docs(docs)
         self.assert_(len(db) == 4)
         docs1 = [
                 docs[0],
@@ -469,7 +469,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 {'_id': docs[3]['_id'], 'string': 'test', 'number': 6 }
         ]
 
-        self.assertRaises(BulkSaveError, db.bulk_save, docs1)
+        self.assertRaises(BulkSaveError, db.save_docs, docs1)
 
         docs2 = [
             docs1[0],
@@ -480,7 +480,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         doc23 = docs2[3].copy()
         all_errors = []
         try:
-            db.bulk_save(docs2)
+            db.save_docs(docs2)
         except BulkSaveError, e:
             all_errors = e.errors
 
@@ -498,7 +498,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         doc33 = docs3[3].copy()
         all_errors2 = []
         try:
-            db.bulk_save(docs3, all_or_nothing=True)
+            db.save_docs(docs3, all_or_nothing=True)
         except BulkSaveError, e:
             all_errors2 = e.errors
         
