@@ -365,7 +365,7 @@ class Database(object):
         }
         return View(self, view_path, schema=schema, params=params)
 
-    def all_docs(self, by_seq=False, schema=None,
+    def all_docs(self, schema=None,
                  startkey=View.UNDEFINED_VALUE, endkey=View.UNDEFINED_VALUE,
                  keys=None, key=View.UNDEFINED_VALUE,
                  startkey_docid=View.UNDEFINED_VALUE, endkey_docid=View.UNDEFINED_VALUE,
@@ -384,11 +384,6 @@ class Database(object):
         
         :return: :class:`couchreq.view.View`
         """
-        if by_seq:
-            view_path = '_all_docs_by_seq'
-        else:
-            view_path = '_all_docs'
-
         params = {
             'startkey': startkey,
             'endkey': endkey,
@@ -407,7 +402,7 @@ class Database(object):
             'inclusive_end': inclusive_end,
             'update_seq': update_seq
         }
-        return View(self, view_path, schema=schema, params=params)
+        return View(self, '_all_docs', schema=schema, params=params)
 
     def put_attachment(self, doc, content, name=None, content_type=None, content_length=None):
         """
