@@ -14,8 +14,11 @@ from .utils import url_quote
 from .view import View
 
 class Database(object):
-    """ Object that abstract access to a CouchDB database
-    A Database object can act as a Dict object.
+    """
+    Provides access to a CouchDB database
+    
+    Do not construct directly. Use :meth:`couchdbreq.Server.get_db` or 
+    :meth:`couchdbreq.Server.create_db`.
     """
 
     VALID_DB_NAME = re.compile(r'^[a-z][a-z0-9_$()+-/]*$')
@@ -53,7 +56,7 @@ class Database(object):
 
     def __init__(self, server, name, create=False, get_or_create=False):
         """
-        Constructor for Database
+        Internal constructor for Database
 
         @param server: A Server instance
         @param dbname: The name of the database
@@ -113,15 +116,18 @@ class Database(object):
         raise CompactError()
 
     def view_cleanup(self):
-        res = self._res.post('_view_cleanup', headers={"Content-Type":
-            "application/json"})
+        """
+        Clean up views
+        """
+        res = self._res.post('_view_cleanup', headers={"Content-Type": "application/json"})
         return res.json_body
 
     def __contains__(self, docid):
-        """Test if document exists in a database
+        """
+        Test if document exists in a database
 
-        @param docid: str, document id
-        @return: boolean, True if document exist
+        :param docid: str, document id
+        :return: boolean, True if document exist
         """
 
         try:
@@ -131,7 +137,8 @@ class Database(object):
         return True
 
     def get_doc(self, docid, rev=None, schema=None):
-        """Get document from database
+        """
+        Get document from database
 
         @param docid: str, document id to retrieve
         @param rev: Get a specific revision of a document
