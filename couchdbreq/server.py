@@ -12,13 +12,20 @@ from .database import Database
 from .resource import CouchdbResource
 
 class Session(requests.Session):
-    pass
+    """
+    The http session for a server to use.
 
-class Server(object):
-    """ Server object that allows you to access and manage a couchdb node.
-    A Server object can be used like any `dict` object.
+    See `http://docs.python-requests.org/en/latest/api/#sessionapi`.
     """
 
+class Server(object):
+    """
+    A Server object represents the connection to the CouchDB database.
+
+    :param uri: URI of the server
+    :param session: A :class:`couchdbreq.Session` object. Use this to configure the
+            connection parameters such as timeout, connection pool size and authentication.
+    """
     uuid_batch_count = 1000
     
     def __init__(self, uri='http://127.0.0.1:5984', session=None):
@@ -36,32 +43,45 @@ class Server(object):
         self._res = CouchdbResource(session, uri)
 
     def info(self):
+        """
+        Get server info
+        """
         return self._res.get().json_body
 
     def get_db_names(self):
-        """ get list of databases in CouchDb host
+        """
+        Get all database names on the server
 
+        :return: List of unicode database names
         """
         return self._res.get('_all_dbs').json_body
 
     def get_db(self, dbname):
+        """
+        Get a :class:`couchdbreq.Database` object for an existing database
+
+        :param dbname: unicode name of the db
+        :return: :class:`couchdbreq.Database`
+        :raise: :class:`couchdbreq.exceptions.ResourceNotFound` If the database does not exist
+        """
         return Database(self, dbname)
 
     def create_db(self, dbname):
         """
-        Create a database on CouchDb host
+        Create a database on the server
         
-        If the database already exists then DatabaseExistsException is raised
-
-        @param dname: str, name of db
-        @return: Database instance
+        :param dbname: unicode name of the db
+        :return: :class:`couchdbreq.Database`
+        :raise: :class:`couchdbreq.exceptions.DatabaseExistsException` If the database already exists
         """
         return Database(self, dbname, create=True)
 
     def get_or_create_db(self, dbname):
         """
-        Get a database or create a database if missing.
-        @return: Database instance
+        Get a database or create new database if missing.
+
+        :param dbname: unicode name of the db
+        :return: :class:`couchdbreq.Database`
         """
         return Database(self, dbname, get_or_create=True)
 
@@ -81,15 +101,13 @@ class Server(object):
         proxy=None,
         query_params=None):
         """
-        simple handler for replication
+        Replicate a database
+        
+        More info about replication here:
+        `http://wiki.apache.org/couchdb/Replication`
 
-        @param source: str, URI or dbname of the source
-        @param target: str, URI or dbname of the target
-        @param params: replication options
-
-        More info about replication here :
-        http://wiki.apache.org/couchdb/Replication
-
+        :param source: URI or dbname of the source
+        :param target: URI or dbname of the target
         """
         params = {
             "source": source,
