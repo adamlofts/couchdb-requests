@@ -8,7 +8,10 @@ from .exceptions import MultipleResultsFound, NoResultFound
 
 class View(object):
     """
-    Object to retrieve view results.
+    An iterable object representing a query.
+
+    Do not construct directly. Use :meth:`couchdbreq.Database.view`, 
+    :meth:`couchdbreq.Database.all_docs` or :meth:`couchdbreq.view.View.filter`.
     """
 
     UNDEFINED_VALUE = object()
@@ -57,10 +60,11 @@ class View(object):
 
     def first(self, is_null_exception=False):
         """
-        Return the first result of this query or None if the result doesn’t contain any row.
+        Return the first result of this query or None if the result doesn’t contain any rows.
         
-        @param is_null_exception: If True then raise `couchdbkit.exceptions.NoResultFound` an exception if no
-        results are found.
+        :param is_null_exception: If True then raise :class:`couchdbkit.exceptions.NoResultFound` if no
+                results are found.
+        :return: A dict representing the row result or None
         """
         try:
             return self._iterator(limit=1).next()
@@ -74,8 +78,9 @@ class View(object):
         """
         Return exactly one result or raise an exception if multiple results are found.
         
-        @param is_null_exception: If True then raise `couchdbkit.exceptions.NoResultFound` an exception if no
-        results are found.
+        :param is_null_exception: If True then raise :class:`couchdbkit.exceptions.NoResultFound` if no
+                results are found.
+        :return: A dict representing the row result or None
         """
 
         row1 = None
@@ -90,11 +95,19 @@ class View(object):
         return row1
 
     def all(self):
-        """ return list of all results """
+        """
+        Get a list of all rows
+
+        :return: :py:class:`list`
+        """
         return list(self._iterator())
 
     def count(self):
-        """ return number of returned results """
+        """
+        Return the number of results
+
+        :return: :py:class:`int`
+        """
         # FIXME: Implement better
         count = 0
         for _ in self._iterator():
@@ -117,9 +130,10 @@ class View(object):
          skip=UNDEFINED_VALUE, limit=UNDEFINED_VALUE,
          inclusive_end=UNDEFINED_VALUE):
         """
-        Return a new View object with the filtered values
+        Return a new View object with updated query parameters.
+        The original View object remains unchanged.
         
-        @return A new View
+        :return: A new :class:`couchdbreq.view.View` object
         """
 
         params = self._params.copy()

@@ -30,8 +30,11 @@ def _maybe_serialize(doc):
     return doc, False
 
 class Database(object):
-    """ Object that abstract access to a CouchDB database
-    A Database object can act as a Dict object.
+    """
+    Allows getting and settings documents, attachments and querying for data.
+
+    Do not construct this class directly. Use :py:meth:`couchdbreq.Server.get_db` or 
+    :meth:`couchdbreq.Server.create_db` to get or create a :class:`couchdbreq.database.Database`.
     """
 
     VALID_DB_NAME = re.compile(r'^[a-z][a-z0-9_$()+-/]*$')
@@ -69,7 +72,7 @@ class Database(object):
 
     def __init__(self, server, name, create=False, get_or_create=False):
         """
-        Constructor for Database
+        Internal constructor for Database
 
         @param server: A Server instance
         @param dbname: The name of the database
@@ -107,7 +110,8 @@ class Database(object):
         return self._res.get().json_body
 
     def compact(self, dname=None):
-        """ compact database
+        """
+        Compact database
         @param dname: string, name of design doc. Usefull to
         compact a view.
         """
