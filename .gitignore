@@ -23,5 +23,5 @@ store/*
 *.log
 couchdbkit.egg-info
 dist/
-doc/_build/
+docs/_build/
 distribute-*
