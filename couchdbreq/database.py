@@ -10,6 +10,8 @@ import base64
 from mimetypes import guess_type
 
 from .exceptions import InvalidAttachment, ResourceNotFound, BulkSaveError, DatabaseExistsException, CompactError
+from .exceptions import InvalidDatabaseNameError
+
 from .utils import url_quote
 from .view import View
 
@@ -30,7 +32,7 @@ class Database(object):
         if name in Database.SPECIAL_DBS:
             return True
         elif not Database.VALID_DB_NAME.match(urllib.unquote(name)):
-            raise ValueError("Invalid db name: '%s'" % name) # FIXME: Don't use a generic exception here
+            raise InvalidDatabaseNameError()
         return True
     
     @staticmethod
@@ -62,8 +64,9 @@ class Database(object):
         :param dbname: The name of the database
         :param create: boolean, False by default, if True try to create the database.
         :param ger_or_create: boolean, False by default, if True try to create the database.
+        :raise: :class:`couchdbreq.exceptions.InvalidDatabaseNameError` if dbname is invalid
         """
-        
+
         Database._validate_dbname(name)
 
         self.name = name

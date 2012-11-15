@@ -7,7 +7,7 @@ import unittest
 from os import path
 
 from couchdbreq import Server, Session
-from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError
+from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -72,10 +72,9 @@ class ClientServerTestCase(unittest.TestCase):
 
     def testCreateInvalidDbName(self):
 
-        def create_invalid():
-            res = self.Server.create_db('123ab')
-
-        self.assertRaises(ValueError, create_invalid) 
+        self.assertRaises(InvalidDatabaseNameError, self.Server.create_db, '123ab') 
+        self.assertRaises(InvalidDatabaseNameError, self.Server.get_or_create_db, '123ab') 
+        self.assertRaises(InvalidDatabaseNameError, self.Server.get_db, '123ab')
     
     def testServerLen(self):
         res = self.Server.create_db('couchdbkit_test')

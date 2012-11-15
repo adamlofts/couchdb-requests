@@ -11,11 +11,18 @@ never throw any other exceptions.
 """
 
 class CouchException(Exception):
-    """ Base class """
+    """
+    Base class
+    
+    All exceptions thrown by couchdb-requests entry points should derive from this exception
+    """
+
+class InvalidDatabaseNameError(CouchException):
+    """ Thrown when an invalid database name is used """
+    pass
 
 class CompactError(CouchException):
-    """ unkown exception raised by the designer """
-
+    """ unkown exception raised by the designe """
 
 class ResourceError(CouchException):
     """ default error class """
