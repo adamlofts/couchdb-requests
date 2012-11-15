@@ -7,7 +7,7 @@ import unittest
 from os import path
 
 from couchdbreq import Server, Session
-from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, ResourceConflict, BulkSaveError
+from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -781,7 +781,28 @@ class ClientViewTestCase(unittest.TestCase):
         # WTF  ? Couchdb replies with a 200 status
         db.delete_attachment(doc1, 'doesnotexist')
         
-
+        data = 'A' * 8000 + 'B' * 2933
+        db.put_attachment(doc1, data, 'oddsize', 'text/plain')
+        
+        doc2 = { '_id': 'test2' }
+        db.save_doc(doc2)
+        
+        data = db.fetch_attachment(doc1, 'oddsize', stream=True)
+        db.put_attachment(doc2, data, 'oddsize2', content_length=10933)
+        
+        stream = db.fetch_attachment(doc2, 'oddsize2', stream=True)
+        s = stream.read(8000)
+        self.assertTrue('B' not in s)
+        self.assertEqual(s[0], 'A')
+        self.assertEqual(s[-1], 'A')
+        self.assertEqual(len(s), 8000)
+        
+        s = stream.read(8000)
+        self.assertTrue('A' not in s)
+        self.assertEqual(s[0], 'B')
+        self.assertEqual(s[-1], 'B')
+        self.assertEqual(len(s), 2933)
+        
 if __name__ == '__main__':
     unittest.main()
 
