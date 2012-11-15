@@ -3,30 +3,22 @@
 # This file is part of couchdbkit released under the MIT license. 
 # See the NOTICE for more information.
 
-"""
-All exceptions used in couchdbkit.
-
-FIXME: All exceptions should derive from the same base class and the package should
-never throw any other exceptions. 
-"""
-
 class CouchException(Exception):
     """
     Base class
     
-    All exceptions thrown by couchdb-requests entry points should derive from this exception
+    All exceptions thrown by couchdb-requests entry points should derive from this exception.
     """
 
 class InvalidDatabaseNameError(CouchException):
     """ Thrown when an invalid database name is used """
     pass
 
-class CompactError(CouchException):
-    """ unkown exception raised by the designe """
-
 class ResourceError(CouchException):
-    """ default error class """
-    
+    """
+    General http exception
+    """
+
     status_int = None
     
     def __init__(self, msg=None, http_code=None, response=None):

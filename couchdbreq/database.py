@@ -9,8 +9,8 @@ import base64
 
 from mimetypes import guess_type
 
-from .exceptions import InvalidAttachment, ResourceNotFound, BulkSaveError, DatabaseExistsException, CompactError
-from .exceptions import InvalidDatabaseNameError
+from .exceptions import InvalidAttachment, ResourceNotFound, BulkSaveError, DatabaseExistsException
+from .exceptions import InvalidDatabaseNameError, ResourceError
 
 from .utils import url_quote
 from .view import View
@@ -103,7 +103,7 @@ class Database(object):
         res = self._res.post("_compact", headers={"Content-Type": "application/json"})
         if res.status_int == 202:
             return True
-        raise CompactError()
+        raise ResourceError.create_from_response(res)
     
     def compact_view(self, view_name):
         """
@@ -116,7 +116,7 @@ class Database(object):
         res = self._res.post(path, headers={"Content-Type": "application/json"})
         if res.status_int == 202:
             return True
-        raise CompactError()
+        raise ResourceError.create_from_response(res)
 
     def view_cleanup(self):
         """
