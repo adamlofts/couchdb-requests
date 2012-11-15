@@ -30,20 +30,24 @@ class ResponseStream(object):
     
     def read(self, size=None):
         buf = self.buf
+        
+        # If we have enought data already then we are done
         if size and len(buf) >= size:
             ret = buf[:size]
             self.buf = buf[size:]
             return ret
-            
+        
+        # Look for more data
         for chunk in self:
             buf += chunk
             
             if size and len(buf) >= size:
-                ret = buf[:size]
-                self.buf = buf[size:]
-                return ret
+                break
 
-        return buf
+        # Return at most size bytes
+        ret = buf[:size]
+        self.buf = buf[size:]
+        return ret
         
 class CouchDBResponse(object):
 
