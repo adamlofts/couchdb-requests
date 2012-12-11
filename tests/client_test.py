@@ -69,7 +69,12 @@ class ClientServerTestCase(unittest.TestCase):
         self.assert_(db.name == gocdb.name)
         self.Server.delete_db("get_or_create_db")
         
-
+    def testGetDBNoValidation(self):
+        
+        # This will work
+        db = self.Server.get_db("does_not_exist_111", is_verify_existance=False)
+        self.assertRaises(ResourceNotFound, db.info)
+        
     def testCreateInvalidDbName(self):
 
         self.assertRaises(InvalidDatabaseNameError, self.Server.create_db, '123ab') 

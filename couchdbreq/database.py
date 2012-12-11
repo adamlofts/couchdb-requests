@@ -56,7 +56,7 @@ class Database(object):
                 v['data'] = Database.re_sp.sub('', base64.b64encode(v['data']))
         return attachments
 
-    def __init__(self, server, name, create=False, get_or_create=False):
+    def __init__(self, server, name, create=False, get_or_create=False, is_verify_existance=True):
         """
         Internal constructor for Database
 
@@ -74,6 +74,9 @@ class Database(object):
         self.server = server
         self._res = server._res(name, ":") # / is not safe for the dbname
 
+        if not is_verify_existance:
+            return
+        
         try:
             self._res.head()
             

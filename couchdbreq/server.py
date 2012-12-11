@@ -56,15 +56,19 @@ class Server(object):
         """
         return self._res.get('_all_dbs').json_body
 
-    def get_db(self, dbname):
+    def get_db(self, dbname, is_verify_existance=True):
         """
         Get a :class:`couchdbreq.Database` object for an existing database
 
+        If the database does not exist and is_verify_existance=True then :class:`couchdbreq.exceptions.ResourceNotFound`
+        will be raised. 
+        
         :param dbname: unicode name of the db
+        :param is_verify_existance: bool Set to false to avoid a HEAD request checking that the database exists
         :return: :class:`couchdbreq.Database`
         :raise: :class:`couchdbreq.exceptions.ResourceNotFound` If the database does not exist
         """
-        return Database(self, dbname)
+        return Database(self, dbname, is_verify_existance=is_verify_existance)
 
     def create_db(self, dbname):
         """
