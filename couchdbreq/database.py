@@ -503,7 +503,11 @@ class Database(object):
         return content
 
     def ensure_full_commit(self):
-        """ commit all docs in memory """
+        """
+        Commit all docs in memory
+        
+        This can be used after saving docs with batch=True to ensure they are all saved to disk.
+        """
         return self._res.post('_ensure_full_commit', headers={
             "Content-Type": "application/json"
         }).json_body
