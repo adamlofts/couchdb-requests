@@ -512,11 +512,13 @@ class Database(object):
             "Content-Type": "application/json"
         }).json_body
 
-    def __len__(self):
+    def length(self):
+        """
+        Count the number of documents in the database.
+        
+        This is implemented with a HEAD request to the database.
+        """
         return self.info()['doc_count']
-
-    def __nonzero__(self):
-        return (len(self) > 0)
     
     def changes(self,
         since=None,

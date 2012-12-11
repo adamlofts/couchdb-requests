@@ -140,6 +140,13 @@ class ClientDatabaseTestCase(unittest.TestCase):
         db.save_doc(doc1)
         self.assert_('test' in db)
         self.Server.delete_db('couchdbkit/test')
+    
+    def testNonZero(self):
+        """
+        A database is falsy only if it is None. We do not have any weirdness considering e.g. the length of the db
+        """
+        db = self.Server.create_db('couchdbkit_test')
+        self.assertTrue(db)
             
     def testUpdateDoc(self):
         db = self.Server.create_db('couchdbkit_test')
@@ -214,7 +221,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         doc2 = { 'string': 'test2', 'number': 4 }
         db.save_doc(doc2)
 
-        self.assert_(len(db) == 2)
+        self.assert_(db.length() == 2)
         self.Server.delete_db('couchdbkit_test')
         
     def testDeleteDoc(self):
@@ -414,7 +421,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 6 }
         ]
         db.save_docs(docs)
-        self.assert_(len(db) == 4)
+        self.assert_(db.length() == 4)
         self.assert_('_id' in docs[0])
         self.assert_('_rev' in docs[0])
         doc = db.get_doc(docs[2]['_id'])
@@ -445,9 +452,9 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 6 }
         ]
         db.save_docs(docs)
-        self.assert_(len(db) == 4)
+        self.assert_(db.length() == 4)
         db.delete_docs(docs)
-        self.assert_(len(db) == 0)
+        self.assert_(db.length() == 0)
         self.assert_(db.info()['doc_del_count'] == 4)
 
         self.Server.delete_db('couchdbkit_test')
@@ -461,7 +468,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
                 { 'string': 'test', 'number': 6 }
         ]
         db.save_docs(docs)
-        self.assert_(len(db) == 4)
+        self.assert_(db.length() == 4)
         docs1 = [
                 docs[0],
                 docs[1],
@@ -734,7 +741,7 @@ class ClientViewTestCase(unittest.TestCase):
         
         self.Server.replicate(db1.name, db2.name)
         
-        self.assertEqual(len(db2), 1)
+        self.assertEqual(db2.length(), 1)
     
     def testAttachmentStreams(self):
         db = self.Server.create_db('couchdbkit_test')
