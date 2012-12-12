@@ -71,7 +71,7 @@ class Database(object):
 
         self.name = name
         
-        self.server = server
+        self._server = server
         self._res = server._res(name, ":") # / is not safe for the dbname
 
         if not is_verify_existance:
@@ -96,7 +96,7 @@ class Database(object):
         Get the :class:`couchdbreq.server.Server` object hosting this database
         :return: :class:`couchdbreq.server.Server`
         """
-        return self.server
+        return self._server
 
     def info(self):
         """
@@ -210,7 +210,7 @@ class Database(object):
         if '_id' in doc:
             docid = doc1['_id']
         else:
-            docid = self.server.generate_uuid()
+            docid = self._server.generate_uuid()
             
         docid1 = Database._escape_docid(docid)
         res = self._res.put(docid1, payload=doc1, params=params).json_body
@@ -239,7 +239,7 @@ class Database(object):
         if use_uuids:
             for doc in docs:
                 if '_id' not in doc:
-                    doc['_id'] = self.server.generate_uuid()
+                    doc['_id'] = self._server.generate_uuid()
 
         payload = { "docs": docs }
         if all_or_nothing:
@@ -314,7 +314,7 @@ class Database(object):
             docid = doc['_id']
 
         if dest is None:
-            destination = self.server.generate_uuid()
+            destination = self._server.generate_uuid()
         elif isinstance(dest, basestring):
             if dest in self:
                 dest = self.get(dest)
