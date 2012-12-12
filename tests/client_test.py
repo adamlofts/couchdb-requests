@@ -61,6 +61,8 @@ class ClientServerTestCase(unittest.TestCase):
         self.assert_(gocdb.name == "get_or_create_db")
         self.assert_("get_or_create_db" in self.Server)
         self.Server.delete_db("get_or_create_db")
+        self.assertEqual(self.Server, gocdb.get_server())
+        
         # get the database (already created)
         self.assertFalse("get_or_create_db" in self.Server)
         db = self.Server.create_db("get_or_create_db")

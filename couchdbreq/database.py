@@ -90,6 +90,13 @@ class Database(object):
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.name)
+    
+    def get_server(self):
+        """
+        Get the :class:`couchdbreq.server.Server` object hosting this database
+        :return: :class:`couchdbreq.server.Server`
+        """
+        return self.server
 
     def info(self):
         """
