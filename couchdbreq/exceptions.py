@@ -124,22 +124,7 @@ _ExceptionMap = {
 class DatabaseExistsException(CouchException):
     """ Exception raised when a database already exists """
 
-class InvalidUrl(Exception):
-    """
-    Not a valid url for use with this software.
-    """
-
-class ResponseError(Exception):
-    """ Error raised while getting response or decompressing response stream"""
-
-class ProxyError(Exception):
-    """ raised when proxy error happend"""
-    
-class BadStatusLine(Exception):
-    """ Exception returned by the parser when the status line is invalid"""
-    pass
-
-class InvalidAttachment(Exception):
+class InvalidAttachment(CouchException):
     """ raised when an attachment is invalid """
 
 class DuplicatePropertyError(Exception):

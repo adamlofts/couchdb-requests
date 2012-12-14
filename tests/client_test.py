@@ -8,7 +8,7 @@ from os import path
 
 from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
-from couchdbreq.exceptions import CouchException, RequestError, Timeout
+from couchdbreq.exceptions import CouchException, RequestError, Timeout, InvalidAttachment
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -372,6 +372,8 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.assert_(old_rev != doc['_rev'])
         fetch_attachment = db.fetch_attachment(doc, "test").decode('utf8')
         self.assert_(text_attachment == fetch_attachment)
+
+        self.assertRaises(InvalidAttachment, db.put_attachment, doc, {}, "test", "text/plain")
         self.Server.delete_db('couchdbkit_test')
         
     def testFetchAttachmentStream(self):
