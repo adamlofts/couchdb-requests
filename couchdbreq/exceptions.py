@@ -147,13 +147,16 @@ class ReservedWordError(Exception):
 class DocsPathNotFound(Exception):
     """ exception raised when path given for docs isn't found """
 
-class BulkSaveError(Exception):
+class BulkSaveError(CouchException):
     """ exception raised when bulk save contain errors.
     error are saved in `errors` property.
     """
-    def __init__(self, errors, results, *args):
+    def __init__(self, errors, results):
         self.errors = errors
         self.results = results
+    
+    def __str__(self):
+        return '<BulkSaveError> %s results, %s errors' % (len(self.results), len(self.errors))
 
 class ViewServerError(Exception):
     """ exception raised by view server"""

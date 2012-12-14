@@ -8,6 +8,7 @@ from os import path
 
 from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
+from couchdbreq.exceptions import CouchException
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -484,6 +485,13 @@ class ClientDatabaseTestCase(unittest.TestCase):
         ]
 
         self.assertRaises(BulkSaveError, db.save_docs, docs1)
+        self.assertRaises(CouchException, db.save_docs, docs1)
+        
+        try:
+            db.save_docs(docs1)
+        except BulkSaveError as e:
+            self.assertEqual(len(e.results), 4)
+            self.assertEqual(len(e.errors), 2)
 
         docs2 = [
             docs1[0],
