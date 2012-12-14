@@ -8,7 +8,7 @@ from os import path
 
 from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
-from couchdbreq.exceptions import CouchException, RequestError
+from couchdbreq.exceptions import CouchException, RequestError, Timeout
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -109,6 +109,17 @@ class ClientServerTestCase(unittest.TestCase):
         server = Server(session=session, uri='http://127.0.0.1:999999')
         self.assertRaises(RequestError, server.info)
         self.assertRaises(CouchException, server.info)
+    
+    def testTimeout(self):
+        session = Session(timeout=0.1)
+        server = Server(session=session)
+        
+        db = server.create_db("couchdbkit_test")
+        try:
+            db._res.get('_changes', params = { 'feed': 'longpoll', 'since': 10000000 })
+        except Timeout as e:
+            self.assertEqual(e.timeout, 0.1)
+            self.assertEqual(e.uri, "http://127.0.0.1:5984/couchdbkit_test/_changes?feed=longpoll&since=10000000")
         
 class ClientDatabaseTestCase(unittest.TestCase):
     def setUp(self):

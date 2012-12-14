@@ -27,6 +27,19 @@ class RequestError(CouchException):
     def __str__(self):
         return str(self._ex)
 
+class Timeout(RequestError):
+    """
+    Timeout
+    """
+    
+    def __init__(self, ex, session, uri):
+        RequestError.__init__(self, ex)
+        self.timeout = session.timeout
+        self.uri = uri
+    
+    def __str__(self):
+        return "Timeout(timeout=%s, uri='%s')" % (self.timeout, self.uri)
+    
 class ResourceError(CouchException):
     """
     General http exception
@@ -111,9 +124,6 @@ _ExceptionMap = {
 class DatabaseExistsException(CouchException):
     """ Exception raised when a database already exists """
 
-class RequestTimeout(Exception):
-    """ Exception raised on socket timeout """
-    
 class InvalidUrl(Exception):
     """
     Not a valid url for use with this software.

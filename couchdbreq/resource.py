@@ -5,10 +5,11 @@
 
 import requests
 import json
+import socket
 
 from . import __version__
 
-from .exceptions import RequestError, ResourceError
+from .exceptions import RequestError, ResourceError, Timeout
 from .utils import make_uri
 
 USER_AGENT = 'couchdbreq/%s' % __version__
@@ -137,6 +138,10 @@ class CouchdbResource(object):
                              data=payload, headers=headers, prefetch=not stream)
         except requests.ConnectionError as e:
             raise RequestError(e)
+        except socket.timeout as e:
+            raise Timeout(e, self.session, uri)
+        except requests.Timeout as e:
+            raise Timeout(e, self.session, uri)
 
         status_code = resp.status_code
 
