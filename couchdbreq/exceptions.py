@@ -127,28 +127,13 @@ class DatabaseExistsException(CouchException):
 class InvalidAttachment(CouchException):
     """ raised when an attachment is invalid """
 
-class DuplicatePropertyError(Exception):
-    """ exception raised when there is a duplicate 
-    property in a model """
-
-class BadValueError(Exception):
-    """ exception raised when a value can't be validated 
-    or is required """
-
-class MultipleResultsFound(Exception):
+class MultipleResultsFound(CouchException):
     """ exception raised when more than one object is
     returned by the get_by method"""
     
-class NoResultFound(Exception):
+class NoResultFound(CouchException):
     """ exception returned when no results are found """
     
-class ReservedWordError(Exception):
-    """ exception raised when a reserved word
-    is used in Document schema """
-    
-class DocsPathNotFound(Exception):
-    """ exception raised when path given for docs isn't found """
-
 class BulkSaveError(CouchException):
     """ exception raised when bulk save contain errors.
     error are saved in `errors` property.
@@ -159,12 +144,3 @@ class BulkSaveError(CouchException):
     
     def __str__(self):
         return '<BulkSaveError> %s results, %s errors' % (len(self.results), len(self.errors))
-
-class ViewServerError(Exception):
-    """ exception raised by view server"""
-
-class MacroError(Exception):
-    """ exception raised when macro parsiing error in functions """
-
-class DesignerError(Exception):
-    """ unkown exception raised by the designer """
