@@ -14,6 +14,19 @@ class InvalidDatabaseNameError(CouchException):
     """ Thrown when an invalid database name is used """
     pass
 
+class RequestError(CouchException):
+    """
+    Exception raised when error making the request to the resource
+    """
+    
+    def __init__(self, ex):
+        self._ex = ex
+        self.error = ex.message
+        self.message = str(ex)
+    
+    def __str__(self):
+        return str(self._ex)
+
 class ResourceError(CouchException):
     """
     General http exception
@@ -97,12 +110,6 @@ _ExceptionMap = {
 
 class DatabaseExistsException(CouchException):
     """ Exception raised when a database already exists """
-
-class RedirectLimit(Exception):
-    """Exception raised when the redirection limit is reached."""
-
-class RequestError(Exception):
-    """Exception raised when a request is malformed"""
 
 class RequestTimeout(Exception):
     """ Exception raised on socket timeout """

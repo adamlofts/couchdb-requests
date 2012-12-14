@@ -8,7 +8,7 @@ from os import path
 
 from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
-from couchdbreq.exceptions import CouchException
+from couchdbreq.exceptions import CouchException, RequestError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -103,6 +103,12 @@ class ClientServerTestCase(unittest.TestCase):
         uuid2 = self.Server.generate_uuid()
         self.assert_(uuid != uuid2)
         self.assert_(len(self.Server._uuids) == 998)
+    
+    def testBadRequest(self):
+        session = Session(timeout=5)
+        server = Server(session=session, uri='http://127.0.0.1:999999')
+        self.assertRaises(RequestError, server.info)
+        self.assertRaises(CouchException, server.info)
         
 class ClientDatabaseTestCase(unittest.TestCase):
     def setUp(self):
