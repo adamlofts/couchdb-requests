@@ -46,7 +46,7 @@ class ResourceError(CouchException):
     def create_from_response(resp):
         status_code = resp.status_code
         error_type = _ExceptionMap.get(status_code, RequestFailed)
-        raise error_type(resp.content, http_code=status_code, response=resp)
+        return error_type(resp.content, http_code=status_code, response=resp)
 
 class ResourceNotFound(ResourceError):
     """Exception raised when no resource was found at the given url. 
