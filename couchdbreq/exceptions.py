@@ -14,6 +14,10 @@ class InvalidDatabaseNameError(CouchException):
     """ Thrown when an invalid database name is used """
     pass
 
+class InvalidDocNameError(CouchException):
+    """ Thrown when an invalid doc name is used e.g. the empty string """
+    pass
+
 class RequestError(CouchException):
     """
     Exception raised when error making the request to the resource

@@ -10,7 +10,7 @@ import base64
 from mimetypes import guess_type
 
 from .exceptions import InvalidAttachment, ResourceNotFound, BulkSaveError, DatabaseExistsException
-from .exceptions import InvalidDatabaseNameError, ResourceError
+from .exceptions import InvalidDatabaseNameError, ResourceError, InvalidDocNameError
 
 from .utils import url_quote
 from .view import View
@@ -143,6 +143,8 @@ class Database(object):
         :return: boolean, True if document exist
         """
 
+        if not docid:
+            return False
         try:
             self._res.head(Database._escape_docid(docid))
         except ResourceNotFound:
@@ -159,11 +161,15 @@ class Database(object):
         which will be used to map the response.
         
         :return: dict, representation of CouchDB document as a dict.
+        :raise: :class:`couchdbreq.exceptions.InvalidDocNameError` if the docid is invalid
         """
 
         params = {}
         if rev:
             params['rev'] = rev
+
+        if not docid:
+            raise InvalidDocNameError()
 
         docid = Database._escape_docid(docid)
         doc = self._res.get(docid, params=params).json_body
@@ -178,6 +184,8 @@ class Database(object):
         :param docid: str, undecoded document id.
         :return rev: str, the last revision of document.
         """
+        if not docid:
+            raise InvalidDocNameError()
         response = self._res.head(Database._escape_docid(docid))
         return response.headers['etag'].strip('"')
 
@@ -209,6 +217,8 @@ class Database(object):
 
         if '_id' in doc:
             docid = doc1['_id']
+            if not docid:
+                raise InvalidDocNameError()
         else:
             docid = self._server.generate_uuid()
             
@@ -290,7 +300,11 @@ class Database(object):
         if not '_id' or not '_rev' in doc:
             raise KeyError('_id and _rev are required to delete a doc')
 
-        docid = Database._escape_docid(doc['_id'])
+        docid = doc['_id']
+        if not docid:
+            raise InvalidDocNameError()
+        
+        docid = Database._escape_docid(docid)
         result = self._res.delete(docid, params={ 'rev': doc['_rev'] }).json_body
         doc.update({
             "_rev": result['rev'],

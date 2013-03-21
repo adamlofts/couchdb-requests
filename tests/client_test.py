@@ -8,7 +8,7 @@ from os import path
 
 from couchdbreq import Server, Session
 from couchdbreq.exceptions import DatabaseExistsException, ResourceNotFound, BulkSaveError, InvalidDatabaseNameError
-from couchdbreq.exceptions import CouchException, RequestError, Timeout, InvalidAttachment
+from couchdbreq.exceptions import CouchException, RequestError, RequestFailed, Timeout, InvalidAttachment, InvalidDocNameError
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -189,6 +189,16 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.assertEqual(oldrev, doc['_rev'])
         
         self.Server.delete_db('couchdbkit_test')
+    
+    def testEmptyDocName(self):
+        db = self.Server.create_db('couchdbkit_test')
+        self.assertRaises(InvalidDocNameError, db.get_doc, '')
+        self.assertEqual('' in db, False)
+        self.assertRaises(InvalidDocNameError, db.get_rev, '')
+        self.assertRaises(InvalidDocNameError, db.save_doc, { '_id': '' })
+        self.assertRaises(RequestFailed, db.save_docs, [{ '_id': '' }])
+        self.assertRaises(InvalidDocNameError, db.delete_doc, { '_id': '', '_rev': '' })
+        self.assertRaises(RequestFailed, db.delete_docs, [{ '_id': '', '_rev': '1-1' }])
         
     def testDocWithSlashes(self):
         db = self.Server.create_db('couchdbkit_test')
