@@ -48,6 +48,8 @@ class ClientServerTestCase(unittest.TestCase):
         
         all_dbs = self.Server.get_db_names()
         self.assert_('couchdbkit_test' in all_dbs)
+        self.assert_('couchdbkit_test' in [db.name for db in self.Server.get_dbs()])
+
         self.Server.delete_db('couchdbkit_test')
         self.Server.create_db("couchdbkit/test")
         self.assert_('couchdbkit/test' in self.Server.get_db_names())

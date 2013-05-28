@@ -55,6 +55,15 @@ class Server(object):
         :return: List of unicode database names
         """
         return self._res.get('_all_dbs').json_body
+    
+    def get_dbs(self):
+        """
+        Iterate over all databases
+        
+        :return: List of :class:`couchdbreq.Database` objects
+        """
+        for dbname in self.get_db_names():
+            yield self.get_db(dbname, is_verify_existance=False)
 
     def get_db(self, dbname, is_verify_existance=True):
         """
