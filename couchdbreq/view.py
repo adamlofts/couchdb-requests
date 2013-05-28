@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -
 #
-# This file is part of couchdbkit released under the MIT license.
+# This file is part of couchdb-requests released under the MIT license.
 # See the NOTICE for more information.
 #
 
@@ -18,11 +18,8 @@ class View(object):
     
     def __init__(self, db, view_path, schema=None, params=None):
         """
-        Constructor of ViewResults object
-
-        @param view: Object inherited from :mod:`couchdbkit.client.view.ViewInterface
-        @param params: params to apply when fetching view.
-
+        Do not construct directly. Use :meth:`couchdbreq.Database.view`, 
+        :meth:`couchdbreq.Database.all_docs` or :meth:`couchdbreq.view.View.filter`.
         """
         self._params = params
         
@@ -62,7 +59,7 @@ class View(object):
         """
         Return the first result of this query or None if the result doesn’t contain any rows.
         
-        :param is_null_exception: If True then raise :class:`couchdbkit.exceptions.NoResultFound` if no
+        :param is_null_exception: If True then raise :class:`couchdbreq.exceptions.NoResultFound` if no
                 results are found.
         :return: A dict representing the row result or None
         """
@@ -78,7 +75,7 @@ class View(object):
         """
         Return exactly one result or raise an exception if multiple results are found.
         
-        :param is_null_exception: If True then raise :class:`couchdbkit.exceptions.NoResultFound` if no
+        :param is_null_exception: If True then raise :class:`couchdbreq.exceptions.NoResultFound` if no
                 results are found.
         :return: A dict representing the row result or None
         """
