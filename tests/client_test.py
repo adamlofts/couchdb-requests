@@ -713,6 +713,9 @@ class ClientViewTestCase(unittest.TestCase):
         self.assert_(len(results) == 2)
         results = db.view('test/with_test2')
         self.assert_(len(results) == 1)
+        
+        self.assertEqual(db.view_group_info('test')['name'], 'test')
+        
         self.Server.delete_db('couchdbkit_test')
 
     def testViewWithParams(self):

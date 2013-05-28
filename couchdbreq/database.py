@@ -391,6 +391,15 @@ class Database(object):
             'update_seq': update_seq
         }
         return View(self, view_path, schema=schema, params=params)
+    
+    def view_group_info(self, view_group):
+        """
+        Get the info of a view group
+        
+        :param view_group: 'designname'
+        :return: info
+        """
+        return self._res('_design/%s' % view_group).get('_info').json_body
 
     def all_docs(self, schema=None,
                  startkey=View.UNDEFINED_VALUE, endkey=View.UNDEFINED_VALUE,
