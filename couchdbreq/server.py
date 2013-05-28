@@ -146,6 +146,9 @@ class Server(object):
         resp = self._res.get('_active_tasks')
         return resp.json_body
 
+    def get_stats(self):
+        return self._res.get('_stats').json_body
+
     def generate_uuid(self):
         try:
             return self._uuids.pop()
