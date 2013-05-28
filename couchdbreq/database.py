@@ -98,13 +98,28 @@ class Database(object):
         """
         return self._server
 
-    def info(self):
+    def get_info(self):
         """
         Get database information
 
         :return: dict
         """
         return self._res.get().json_body
+
+    def get_fragmentation(self):
+        """
+        Get the fragmentation on this database
+        0 <= fragmentation <= 100
+        See http://wiki.apache.org/couchdb/Compaction
+        """
+        info = self.get_info()
+        disk_size = float(info['disk_size'])
+        data_size = info.get('data_size', 0)
+        
+        if not data_size or not disk_size:
+            return 0
+        
+        return round((disk_size - data_size) / disk_size * 100, 1)
 
     def compact(self):
         """
@@ -392,7 +407,7 @@ class Database(object):
         }
         return View(self, view_path, schema=schema, params=params)
     
-    def view_group_info(self, view_group):
+    def get_view_group_info(self, view_group):
         """
         Get the info of a view group
         
@@ -400,6 +415,14 @@ class Database(object):
         :return: info
         """
         return self._res('_design/%s' % view_group).get('_info').json_body
+    
+    def get_view_group_fragmentation(self, view_group):
+        info = self.get_view_group_info(view_group)
+        disk_size = float(info.get('disk_size', 0))
+        data_size = info.get('data_size', 0)
+        if not data_size or not disk_size:
+            return 0
+        return round((disk_size - data_size) / disk_size * 100, 1)
 
     def all_docs(self, schema=None,
                  startkey=View.UNDEFINED_VALUE, endkey=View.UNDEFINED_VALUE,
@@ -551,7 +574,7 @@ class Database(object):
         
         This is implemented with a HEAD request to the database.
         """
-        return self.info()['doc_count']
+        return self.get_info()['doc_count']
     
     def changes(self,
         since=None,

@@ -42,7 +42,7 @@ class Server(object):
 
         self._res = CouchdbResource(session, uri)
 
-    def info(self):
+    def get_info(self):
         """
         Get server info
         """

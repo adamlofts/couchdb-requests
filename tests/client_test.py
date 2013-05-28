@@ -37,7 +37,7 @@ class ClientServerTestCase(unittest.TestCase):
             pass
 
     def testGetInfo(self):
-        info = self.Server.info()
+        info = self.Server.get_info()
         self.assert_(info.has_key('version'))
     
     def testCreateDb(self):
@@ -78,7 +78,7 @@ class ClientServerTestCase(unittest.TestCase):
         
         # This will work
         db = self.Server.get_db("does_not_exist_111", is_verify_existance=False)
-        self.assertRaises(ResourceNotFound, db.info)
+        self.assertRaises(ResourceNotFound, db.get_info)
         
     def testCreateInvalidDbName(self):
 
@@ -109,8 +109,8 @@ class ClientServerTestCase(unittest.TestCase):
     def testBadRequest(self):
         session = Session(timeout=5)
         server = Server(session=session, uri='http://127.0.0.1:999999')
-        self.assertRaises(RequestError, server.info)
-        self.assertRaises(CouchException, server.info)
+        self.assertRaises(RequestError, server.get_info)
+        self.assertRaises(CouchException, server.get_info)
     
     def testTimeout(self):
         session = Session(timeout=0.1)
@@ -135,7 +135,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
     
     def testCreateDatabase(self):
         db = self.Server.create_db('couchdbkit_test')
-        info = db.info()
+        info = db.get_info()
         self.assert_(info['db_name'] == 'couchdbkit_test')
         self.Server.delete_db('couchdbkit_test')
         
@@ -494,7 +494,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.assert_(db.length() == 4)
         db.delete_docs(docs)
         self.assert_(db.length() == 0)
-        self.assert_(db.info()['doc_del_count'] == 4)
+        self.assert_(db.get_info()['doc_del_count'] == 4)
 
         self.Server.delete_db('couchdbkit_test')
         
@@ -714,7 +714,7 @@ class ClientViewTestCase(unittest.TestCase):
         results = db.view('test/with_test2')
         self.assert_(len(results) == 1)
         
-        self.assertEqual(db.view_group_info('test')['name'], 'test')
+        self.assertEqual(db.get_view_group_info('test')['name'], 'test')
         
         self.Server.delete_db('couchdbkit_test')
 
