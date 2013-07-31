@@ -11,6 +11,8 @@ Goals:
  * Explicit is better than implicit. Buffer sizes, connection pool size.
  * Specify query parameters, no **params in query functions
  * Not configurable with multiple backends but one single well tested backend
+ * Google App Engine support
+ * Cloudant support
  
 Non-goals:
  * Full api coverage (In my view async support requires mainloop integration).
@@ -89,3 +91,14 @@ Getting Started
 
   server.delete_db("my_new_db")
 
+Authentication (Cloudant)
+-----
+
+You can use a cloudant couch like so:
+::
+
+  from couchdbreq import Server, Session
+  from requests.auth import HTTPBasicAuth
+
+  session = Session(auth=HTTPBasicAuth('username', 'password'))
+  server = Server("http://127.0.0.1:5984", session=session)
