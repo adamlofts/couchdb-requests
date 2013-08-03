@@ -101,4 +101,4 @@ You can use a cloudant couch like so:
   from requests.auth import HTTPBasicAuth
 
   session = Session(auth=HTTPBasicAuth('username', 'password'))
-  server = Server("http://127.0.0.1:5984", session=session)
+  server = Server("https://username.cloudant.com", session=session)
