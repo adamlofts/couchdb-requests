@@ -111,9 +111,6 @@ class View(object):
             count += 1
         return count
 
-    def __len__(self):
-        return self.count()
-
     def __nonzero__(self):
         return bool(self.count())
     
