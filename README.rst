@@ -22,22 +22,16 @@ Plan to implement schema support in the future but right now it is not supported
 Dependencies
 -----
 
-python-requests >= 0.14.1
+python-requests >= 2.5.1
 
 Getting Started
 -----
 
 ::
 
-  from couchdbreq import Server, Session
-
-  # Define connection config. see: http://docs.python-requests.org/en/latest/api/#requests-defaults
-  config = {
-    'max_retries': 3,
-    'pool_connections': 30, # Connection pool size
-  }
-  session = Session(config=config, timeout=30) # 30 second timeout on http-queries
-  server = Server("http://127.0.0.1:5984", session=session)
+  from couchdbreq import Server
+ 
+  server = Server("http://127.0.0.1:5984", timeout=30) # 30 second timeout on all requests
   
   # List all database names
   server.get_db_names()
