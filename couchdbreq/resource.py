@@ -75,9 +75,10 @@ class CouchdbResource(object):
     charset = 'utf-8' # FIXME: Remove?
     response_class = CouchDBResponse
 
-    def __init__(self, session, uri="http://127.0.0.1:5984"):
+    def __init__(self, session, uri, timeout):
         self.session = session
         self.uri = uri
+        self.timeout = timeout
 
     def copy(self, path=None, headers=None, params=None, stream=False):
         """ add copy to HTTP verbs """
@@ -135,13 +136,13 @@ class CouchdbResource(object):
 
         try:
             resp = self.session.request(method, url=uri,
-                             data=payload, headers=headers, prefetch=not stream)
+                             data=payload, headers=headers, stream=stream, timeout=self.timeout)
         except requests.ConnectionError as e:
             raise RequestError(e)
         except socket.timeout as e:
-            raise Timeout(e, self.session, uri)
+            raise Timeout(e, self.timeout, uri)
         except requests.Timeout as e:
-            raise Timeout(e, self.session, uri)
+            raise Timeout(e, self.timeout, uri)
 
         status_code = resp.status_code
 
@@ -159,7 +160,7 @@ class CouchdbResource(object):
         new_uri = make_uri((self.uri, path), charset=self.charset, 
                         safe=safe, encode_keys=self.encode_keys)
 
-        return CouchdbResource(self.session, new_uri)
+        return CouchdbResource(self.session, new_uri, self.timeout)
     
     
     _JSON_PARAMS = (

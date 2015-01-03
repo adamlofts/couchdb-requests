@@ -28,7 +28,7 @@ class Server(object):
     """
     uuid_batch_count = 1000
     
-    def __init__(self, uri='http://127.0.0.1:5984', session=None):
+    def __init__(self, uri='http://127.0.0.1:5984', session=None, timeout=5):
 
         if uri.endswith("/"):
             uri = uri[:-1]
@@ -40,7 +40,7 @@ class Server(object):
         if not session:
             session = Session()
 
-        self._res = CouchdbResource(session, uri)
+        self._res = CouchdbResource(session, uri, timeout)
 
     def get_info(self):
         """

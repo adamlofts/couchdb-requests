@@ -12,7 +12,7 @@ from couchdbreq.exceptions import CouchException, RequestError, RequestFailed, T
 
 class ClientServerTestCase(unittest.TestCase):
     def setUp(self):
-        session = Session(timeout=5)
+        session = Session()
         self.Server = Server(session=session)
         
         try:
@@ -107,14 +107,14 @@ class ClientServerTestCase(unittest.TestCase):
         self.assert_(len(self.Server._uuids) == 998)
     
     def testBadRequest(self):
-        session = Session(timeout=5)
+        session = Session()
         server = Server(session=session, uri='http://127.0.0.1:999999')
         self.assertRaises(RequestError, server.get_info)
         self.assertRaises(CouchException, server.get_info)
     
     def testTimeout(self):
-        session = Session(timeout=0.1)
-        server = Server(session=session)
+        session = Session()
+        server = Server(session=session, timeout=0.1)
         
         db = server.create_db("couchdbkit_test")
         try:
@@ -843,7 +843,7 @@ class ClientViewTestCase(unittest.TestCase):
         db.save_doc(doc2)
         
         data = db.fetch_attachment(doc1, 'oddsize', stream=True)
-        db.put_attachment(doc2, data, 'oddsize2', content_length=10933)
+        db.put_attachment(doc2, data.read(), 'oddsize2', content_length=10933)
         
         stream = db.fetch_attachment(doc2, 'oddsize2', stream=True)
         s = stream.read(8000)

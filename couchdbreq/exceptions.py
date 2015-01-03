@@ -34,9 +34,9 @@ class Timeout(RequestError):
     Timeout
     """
     
-    def __init__(self, ex, session, uri):
+    def __init__(self, ex, timeout, uri):
         RequestError.__init__(self, ex)
-        self.timeout = session.timeout
+        self.timeout = timeout
         self.uri = uri
     
     def __str__(self):
