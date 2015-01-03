@@ -25,8 +25,6 @@ class RequestError(CouchException):
     
     def __init__(self, ex):
         self._ex = ex
-        self.error = ex.message
-        self.message = str(ex)
     
     def __str__(self):
         return str(self._ex)
